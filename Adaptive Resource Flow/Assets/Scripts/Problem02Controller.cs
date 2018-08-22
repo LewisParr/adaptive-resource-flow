@@ -16,6 +16,7 @@ public class Problem02Controller : MonoBehaviour
 	private float[,] minCost;
 	private IDictionary<Vector2, int[]> minCostPath;
 	private float[] rate;
+	private float maxRate;
 	private float[,] flow;
 
 	List<int> source;
@@ -50,6 +51,8 @@ public class Problem02Controller : MonoBehaviour
 
 		// Generate random sources and sinks
 		rate = RandomRates(totalProduction, minProduction, maxProduction);
+		maxRate = 0f;
+		foreach (float r in rate) if (Mathf.Abs(r) > maxRate) maxRate = Mathf.Abs(r);
 
 		// Find each delivery option
 		source = new List<int>();
@@ -81,8 +84,8 @@ public class Problem02Controller : MonoBehaviour
 		// Draw nodes
 		for (int n = 0; n < nNodes; n++)
 		{
-			if (rate[n] > 0) Gizmos.color = Color.blue;
-			else if (rate[n] < 0) Gizmos.color = Color.red;
+			if (rate[n] > 0) Gizmos.color = Color.Lerp(Color.white, Color.blue, rate[n] / maxRate);
+			else if (rate[n] < 0) Gizmos.color = Color.Lerp(Color.white, Color.red, -rate[n] / maxRate);
 			else Gizmos.color = Color.green;
 			Gizmos.DrawSphere(new Vector3(nodeX[n], 0, nodeY[n]), 0.2f);
 		}
@@ -228,6 +231,9 @@ public class Problem02Controller : MonoBehaviour
 
 				if (remain[_source] == 0)
 				{
+					// Recount remaining options
+					nOptions = source.Count;
+					
 					// Remove source
 					toRemove.Clear();
 					for (int i = 0; i < nOptions; i++) if (source[i] == _source) toRemove.Add(i);
