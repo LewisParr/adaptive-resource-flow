@@ -51,9 +51,9 @@ public class Problem01Controller : MonoBehaviour
 		{
 			for (int n = 0; n < nNodes; n++)
 			{
-				DijkstraSolution solution = Dijkstra(m, n);
-				minCost[m, n] = solution.Cost;
-				UpdateMinCostPath(m, n, solution.Path);
+				DijkstraSolution solution = Dijkstra.Algorithm(m, n, distance, distanceExponent);
+				minCost[m, n] = solution.cost;
+				UpdateMinCostPath(m, n, solution.path);
 			}
 		}
 
@@ -232,85 +232,6 @@ public class Problem01Controller : MonoBehaviour
 		}
 	}
 
-	DijkstraSolution Dijkstra(int start, int end)
-	{
-		List<int> unvisited = new List<int>();
-		float[] cost = new float[nNodes];
-		int current;
-		bool terminate = false;
-		int[] prev = new int[nNodes];
-
-		// Add all nodes to unvisited set
-		for (int n = 0; n < nNodes; n++) unvisited.Add(n);
-
-		// Assign tentative cost values
-		for (int n = 0; n < nNodes; n++) cost[n] = float.MaxValue;
-
-		// Set start cost to zero
-		cost[start] = 0f;
-
-		while (!terminate)
-		{
-			// Select the lowest cost unvisited node
-			current = DijkstraSelect(unvisited, cost);
-
-			// Calculate tentative costs
-			for (int n = 0; n < nNodes; n++)
-			{
-				if (unvisited.Contains(n))
-				{
-					float tentative = cost[current] + Mathf.Pow(distance[current, n], distanceExponent);
-					if (tentative < cost[n])
-					{
-						cost[n] = tentative;
-						prev[n] = current;
-					}
-				}
-			}
-
-			// Remove current from unvisited set
-			unvisited.Remove(current);
-
-			// Check for termination
-			if (!unvisited.Contains(end)) terminate = true;
-		}
-
-		// Build path
-		List<int> path = new List<int>();
-		current = end;
-		while (current != start)
-		{
-			path.Add(current);
-			current = prev[current];
-		}
-		path.Add(current);
-		int[] bestPath = path.ToArray();
-		System.Array.Reverse(bestPath);
-
-		// Buid solution
-		DijkstraSolution solution = new DijkstraSolution(cost[end], bestPath);
-
-		// Output solution
-		return solution;
-	}
-
-	int DijkstraSelect(List<int> unvisited, float[] cost)
-	{
-		float min = float.MaxValue;
-		int minIndex = -1;
-
-		foreach (int n in unvisited)
-		{
-			if (cost[n] < min)
-			{
-				min = cost[n];
-				minIndex = n;
-			}
-		}
-
-		return minIndex;
-	}
-
 	void UpdateMinCostPath(int a, int b, int[] p)
 	{
 		Vector2 key = new Vector2(a, b);
@@ -322,17 +243,5 @@ public class Problem01Controller : MonoBehaviour
 		{
 			minCostPath.Add(key, p);
 		}
-	}
-}
-
-public class DijkstraSolution
-{
-	private float cost; public float Cost { get { return cost; } }
-	private int[] path; public int[] Path { get { return path; } }
-
-	public DijkstraSolution(float c, int[] p)
-	{
-		cost = c;
-		path = p;
 	}
 }
