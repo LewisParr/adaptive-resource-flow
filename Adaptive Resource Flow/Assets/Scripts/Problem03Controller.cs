@@ -96,7 +96,8 @@ public class Problem03Controller : MonoBehaviour
 		}
 
 		// Draw flows
-		Gizmos.color = Color.white;
+		float maxFlow = 0f;
+		for (int a = 0; a < nNodes; a++) for (int b = 0; b < nNodes; b++) if (flow[a, b] > maxFlow) maxFlow = flow[a, b];
 		for (int a = 0; a < nNodes; a++)
 		{
 			for (int b = 0; b < nNodes; b++)
@@ -106,6 +107,7 @@ public class Problem03Controller : MonoBehaviour
 				{
 					Vector3 pointA = new Vector3(nodeX[a], 0, nodeY[a]);
 					Vector3 pointB = new Vector3(nodeX[b], 0, nodeY[b]);
+					Gizmos.color = Color.Lerp(Color.black, Color.white, flow[a, b] / maxFlow);
 					Gizmos.DrawLine(pointA, pointB);
 				}
 			}
