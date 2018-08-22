@@ -118,6 +118,22 @@ public class Problem01Controller : MonoBehaviour
 			else Gizmos.color = Color.green;
 			Gizmos.DrawSphere(new Vector3(nodeX[n], 0, nodeY[n]), 0.2f);
 		}
+
+		// Draw flows
+		Gizmos.color = Color.white;
+		for (int a = 0; a < nNodes; a++)
+		{
+			for (int b = 0; b < nNodes; b++)
+			{
+				float amount = flow[a, b];
+				if (amount > 0)
+				{
+					Vector3 pointA = new Vector3(nodeX[a], 0, nodeY[a]);
+					Vector3 pointB = new Vector3(nodeX[b], 0, nodeY[b]);
+					Gizmos.DrawLine(pointA, pointB);
+				}
+			}
+		}
 	}
 
 	void AssignDelivery()
@@ -141,11 +157,22 @@ public class Problem01Controller : MonoBehaviour
 			int _sink = sink[minIndex];
 			float available = rate[_source];
 			float required = rate[_sink];
+			Vector2 key = new Vector2(_source, _sink);
+			int[] deliveryPath = minCostPath[key];
 			//Debug.Log(required + " is required of an available " + available);
 			if (required <= available)
 			{
+				// Reduce the amount of source remaining
 				remain[_source] += required;
+				// Reduce the amount of sink remaining
 				remain[_sink] -= required;
+				// Assign flow along minimum cost path from source to sink
+				for (int i = 0; i < deliveryPath.Length - 1; i++)
+				{
+					int a = deliveryPath[i];
+					int b = deliveryPath[i + 1];
+					flow[a, b] -= required;
+				}
 
 				// Remove sink
 				List<int> toRemove = new List<int>();
@@ -182,8 +209,17 @@ public class Problem01Controller : MonoBehaviour
 			}
 			else
 			{
+				// Reduce the amount of source remaining
 				remain[_source] -= available;
+				// Reduce the amount of sink remaining
 				remain[_sink] += available;
+				// Assign flow along minimum cost path from source to sink
+				for (int i = 0; i < deliveryPath.Length - 1; i++)
+				{
+					int a = deliveryPath[i];
+					int b = deliveryPath[i + 1];
+					flow[a, b] += available;
+				}
 
 				// Remove source
 				List<int> toRemove = new List<int>();
