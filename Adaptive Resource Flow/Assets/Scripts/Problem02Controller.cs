@@ -213,9 +213,8 @@ public class Problem02Controller : MonoBehaviour
 					flow[a, b] -= required;
 				}
 
-				Debug.Log("Source can satisfy sink.");
-				Debug.Log(required+" of "+rate[_source]+" was sourced, "+remain[_source]+" remains.");
-				Debug.Log(required+" of "+rate[_sink]+" was sunk, "+remain[_sink]+" remains.");
+				//Debug.Log(required+" of "+rate[_source]+" was sourced, "+remain[_source]+" remains.");
+				//Debug.Log(required+" of "+rate[_sink]+" was sunk, "+remain[_sink]+" remains.");
 
 				// Remove sink
 				List<int> toRemove = new List<int>();
@@ -233,7 +232,7 @@ public class Problem02Controller : MonoBehaviour
 				{
 					// Recount remaining options
 					nOptions = source.Count;
-					
+
 					// Remove source
 					toRemove.Clear();
 					for (int i = 0; i < nOptions; i++) if (source[i] == _source) toRemove.Add(i);
@@ -258,8 +257,8 @@ public class Problem02Controller : MonoBehaviour
 					flow[a, b] += available;
 				}
 
-				Debug.Log(available+" of "+rate[_source]+" was sourced, "+remain[_source]+" remains.");
-				Debug.Log(available+" of "+rate[_sink]+" was sunk, "+remain[_sink]+" remains.");
+				//Debug.Log(available+" of "+rate[_source]+" was sourced, "+remain[_source]+" remains.");
+				//Debug.Log(available+" of "+rate[_sink]+" was sunk, "+remain[_sink]+" remains.");
 
 				// Remove source
 				List<int> toRemove = new List<int>();
