@@ -5,6 +5,8 @@ using UnityEngine;
 public class Problem01Controller : MonoBehaviour
 {
 	public int nNodes = 8;
+	public int nEnds = 2;
+	public float distanceExponent = 1.1f;
 
 	private float[] nodeX;
 	private float[] nodeY;
@@ -21,7 +23,8 @@ public class Problem01Controller : MonoBehaviour
 
 	private int frameCount;
 
-	void Start () {
+	void Start()
+	{
 		// Initialise
 		nodeX = new float[nNodes];
 		nodeY = new float[nNodes];
@@ -40,13 +43,8 @@ public class Problem01Controller : MonoBehaviour
 		}
 
 		// Calculate distances
-		for (int m = 0; m < nNodes; m++)
-		{
-			for (int n = 0; n < nNodes; n++)
-			{
-				distance[m, n] = Mathf.Sqrt(Mathf.Pow(nodeX[m] - nodeX[n], 2) + Mathf.Pow(nodeY[m] - nodeY[n], 2));
-			}
-		}
+		for (int m = 0; m < nNodes; m++) for (int n = 0; n < nNodes; n++)
+											distance[m, n] = Mathf.Sqrt(Mathf.Pow(nodeX[m] - nodeX[n], 2) + Mathf.Pow(nodeY[m] - nodeY[n], 2));
 
 		// Find shortest paths
 		for (int m = 0; m < nNodes; m++)
@@ -60,13 +58,13 @@ public class Problem01Controller : MonoBehaviour
 		}
 
 		// Generate random sources and sinks
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < nEnds; i++)
 		{
 			int n = Mathf.FloorToInt(Random.value * nNodes);
 			if (rate[n] == 0) rate[n] = 1;
 			else i--;
 		}
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < nEnds; i++)
 		{
 			int n = Mathf.FloorToInt(Random.value * nNodes);
 			if (rate[n] == 0) rate[n] = -1;
@@ -95,17 +93,12 @@ public class Problem01Controller : MonoBehaviour
 				}	
 			}
 		}
-
-		// Assign deliveries
 	}
 	
-	void Update () {
+	void Update()
+	{
 		frameCount++;
-
-		if (frameCount % 100 == 0)
-		{
-			AssignDelivery();
-		}
+		if (frameCount % 100 == 0) AssignDelivery();
 	}
 
 	void OnDrawGizmos()
@@ -266,7 +259,7 @@ public class Problem01Controller : MonoBehaviour
 			{
 				if (unvisited.Contains(n))
 				{
-					float tentative = cost[current] + Mathf.Pow(distance[current, n], 1.1f);
+					float tentative = cost[current] + Mathf.Pow(distance[current, n], distanceExponent);
 					if (tentative < cost[n])
 					{
 						cost[n] = tentative;
