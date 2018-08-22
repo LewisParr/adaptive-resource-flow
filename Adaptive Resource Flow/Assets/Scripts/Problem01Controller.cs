@@ -11,6 +11,15 @@ public class Problem01Controller : MonoBehaviour
 	private float[,] distance;
 	private float[,] minCost;
 	private IDictionary<Vector2, int[]> minCostPath;
+	private float[] rate;
+	private float[,] flow;
+
+	List<int> source;
+	List<int> sink;
+	List<float> cost;
+	float[] remain;
+
+	private int frameCount;
 
 	void Start () {
 		// Initialise
@@ -19,6 +28,9 @@ public class Problem01Controller : MonoBehaviour
 		distance = new float[nNodes, nNodes];
 		minCost = new float[nNodes, nNodes];
 		minCostPath = new Dictionary<Vector2, int[]>();
+		rate = new float[nNodes];
+		flow = new float[nNodes, nNodes];
+		frameCount = 0;
 
 		// Generate random nodes
 		for (int n = 0; n < nNodes; n++)
@@ -47,23 +59,147 @@ public class Problem01Controller : MonoBehaviour
 			}
 		}
 
-		foreach (int i in minCostPath[new Vector2(0, 7)])
+		// Generate random sources and sinks
+		for (int i = 0; i < 2; i++)
 		{
-			//Debug.Log(i);
+			int n = Mathf.FloorToInt(Random.value * nNodes);
+			if (rate[n] == 0) rate[n] = 1;
+			else i--;
 		}
+		for (int i = 0; i < 2; i++)
+		{
+			int n = Mathf.FloorToInt(Random.value * nNodes);
+			if (rate[n] == 0) rate[n] = -1;
+			else i--;
+		}
+
+		// Find each delivery option
+		source = new List<int>();
+		sink = new List<int>();
+		cost = new List<float>();
+		remain = new float[nNodes];
+		for (int i = 0; i < nNodes; i++) remain[i] = rate[i];
+		for (int m = 0; m < nNodes; m++)
+		{
+			if (rate[m] > 0)
+			{
+				for (int n = 0; n < nNodes; n++)
+				{
+					if (rate[n] < 0)
+					{
+						// Cost of delivering is minCost[m, n] along path minCostPath[(m, n)]
+						source.Add(m);
+						sink.Add(n);
+						cost.Add(minCost[m, n]);
+					}
+				}	
+			}
+		}
+
+		// Assign deliveries
 	}
 	
 	void Update () {
-		
+		frameCount++;
+
+		if (frameCount % 100 == 0)
+		{
+			AssignDelivery();
+		}
 	}
 
 	void OnDrawGizmos()
 	{
 		// Draw nodes
-		Gizmos.color = Color.green;
 		for (int n = 0; n < nNodes; n++)
 		{
+			if (rate[n] > 0) Gizmos.color = Color.blue;
+			else if (rate[n] < 0) Gizmos.color = Color.red;
+			else Gizmos.color = Color.green;
 			Gizmos.DrawSphere(new Vector3(nodeX[n], 0, nodeY[n]), 0.2f);
+		}
+	}
+
+	void AssignDelivery()
+	{
+		int nOptions = source.Count;
+		Debug.Log(nOptions + " delivery options remaining.");
+		if (nOptions > 0)
+		{
+			float minValue = float.MaxValue;
+			int minIndex = -1;
+			for (int i = 0; i < cost.Count; i++)
+			{
+				if (cost[i] < minValue)
+				{
+					minValue = cost[i];
+					minIndex = i;
+				}
+			}
+			Debug.Log("Minimum cost delivery is " + minValue + " at index " + minIndex);
+			int _source = source[minIndex];
+			int _sink = sink[minIndex];
+			float available = rate[_source];
+			float required = rate[_sink];
+			//Debug.Log(required + " is required of an available " + available);
+			if (required <= available)
+			{
+				remain[_source] += required;
+				remain[_sink] -= required;
+
+				// Remove sink
+				List<int> toRemove = new List<int>();
+				for (int i = 0; i < sink.Count; i++)
+				{
+					if (sink[i] == _sink) toRemove.Add(i);
+				}
+				for (int a = 0; a < toRemove.Count; a++)
+				{
+					int i = toRemove[a];
+					for (int b = 0; b < a; b++) if (toRemove[b] < toRemove[a]) i--;
+					source.RemoveAt(i);
+					sink.RemoveAt(i);
+					cost.RemoveAt(i);
+				}
+
+				if (remain[_source] == 0)
+				{
+					// Remove source
+					toRemove.Clear();
+					for (int i = 0; i < source.Count; i++)
+					{
+						if (source[i] == _source) toRemove.Add(i);
+					}
+					for (int a = 0; a < toRemove.Count; a++)
+					{
+						int i = toRemove[a];
+						for (int b = 0; b < a; b++) if (toRemove[b] < toRemove[a]) i--;
+						source.RemoveAt(i);
+						sink.RemoveAt(i);
+						cost.RemoveAt(i);
+					}
+				}
+			}
+			else
+			{
+				remain[_source] -= available;
+				remain[_sink] += available;
+
+				// Remove source
+				List<int> toRemove = new List<int>();
+				for (int i = 0; i < source.Count; i++)
+				{
+					if (source[i] == _source) toRemove.Add(i);
+				}
+				for (int a = 0; a < toRemove.Count; a++)
+				{
+					int i = toRemove[a];
+					for (int b = 0; b < a; b++) if (toRemove[b] < toRemove[a]) i--;
+					source.RemoveAt(i);
+					sink.RemoveAt(i);
+					cost.RemoveAt(i);
+				}
+			}
 		}
 	}
 
