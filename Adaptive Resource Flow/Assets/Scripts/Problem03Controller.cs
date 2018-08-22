@@ -19,6 +19,11 @@ public class Problem03Controller : MonoBehaviour
 	private float maxRate;
 	private float[] nodeMaxFlow;
 
+	List<int> source;
+	List<int> sink;
+	List<float> cost;
+	float[] remain;
+
 	void Start()
 	{
 		// Initialise
@@ -38,6 +43,25 @@ public class Problem03Controller : MonoBehaviour
 
 		// Generate maximum node flows
 		nodeMaxFlow = RandomValues(nNodes, minFlowLimit, maxFlowLimit);
+
+		// Find maximum flow (all sources and sinks)
+		float maximumFlow = EdmondsKarp.NodeLimit();
+
+		// Find each delivery option
+		source = new List<int>();
+		sink = new List<int>();
+		cost = new List<float>();
+		remain = new float[nNodes];
+		for (int i = 0; i < nNodes; i++) remain[i] = rate[i];
+		for (int a = 0; a < nNodes; a++) if (rate[a] > 0)
+		{
+			// For each source, ...
+			for (int b = 0; b < nNodes; b++) if (rate[b] < 0)
+			{
+				// ... and each sink
+
+			}
+		}
 	}
 	
 	void Update()
@@ -91,7 +115,7 @@ public class Problem03Controller : MonoBehaviour
 		int i = RandomIndexWithValue(r, 0);
 		r[i] = remaining;
 		remaining -= remaining;
-		Debug.Log(remaining+" source remaining.");
+		//Debug.Log(remaining+" source remaining.");
 
 		// Sinks
 		remaining = -total;
@@ -105,7 +129,7 @@ public class Problem03Controller : MonoBehaviour
 		i = RandomIndexWithValue(r, 0);
 		r[i] = remaining;
 		remaining -= remaining;
-		Debug.Log(remaining+" sink remaining.");
+		//Debug.Log(remaining+" sink remaining.");
 
 		// Return rates
 		return r;
