@@ -202,10 +202,13 @@ public class Problem03Controller : MonoBehaviour
 			// Find the flow limit through nodes on path
 			float nodeLimit = float.MaxValue;
 			int nodeLimitIndex = -1;
-			foreach (int n in deliveryPath) if (remainingFlow[n] < nodeLimit)
+			for (int i = 0; i < deliveryPath.Length - 1; i++)
 			{
-				nodeLimit = remainingFlow[n];
-				nodeLimitIndex = n;
+				if (remainingFlow[deliveryPath[i]] < nodeLimit)
+				{
+					nodeLimit = remainingFlow[deliveryPath[i]];
+					nodeLimitIndex = deliveryPath[i];
+				}
 			}
 			Debug.Log(nodeLimit+" is the flow limit.");
 
@@ -259,7 +262,10 @@ public class Problem03Controller : MonoBehaviour
 		remainingRate[_sink] += amount;
 
 		// Reduce the amount of flow remaining along path
-		foreach (int n in _path) remainingFlow[n] -= amount;
+		for (int i = 0; i < _path.Length - 1; i++)
+		{
+			remainingFlow[_path[i]] -= amount;
+		}
 
 		// Assign flow along minimum cost path from source to sink
 		for (int i = 0; i < _path.Length - 1; i++)
