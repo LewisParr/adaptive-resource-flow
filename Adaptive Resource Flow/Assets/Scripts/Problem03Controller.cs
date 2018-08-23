@@ -33,14 +33,15 @@ public class Problem03Controller : MonoBehaviour
 	{
 		// Initialise
 		flow = new float[nNodes, nNodes];
+		source = new List<int>();
+		sink = new List<int>();
+		cost = new List<float>();
+		path = new List<int[]>();
 		frameCount = 0;
 
 		// Generate random nodes
 		nodeX = RandomValues(nNodes, 0, nNodes);
 		nodeY = RandomValues(nNodes, 0, nNodes);
-
-		// Calculate distances
-		distance = CalculateDistances(nodeX, nodeY);
 
 		// Generate random sources and sinks
 		rate = RandomRates(totalProduction, minProduction, maxProduction);
@@ -50,18 +51,16 @@ public class Problem03Controller : MonoBehaviour
 		// Generate maximum node flows
 		nodeMaxFlow = RandomValues(nNodes, minFlowLimit, maxFlowLimit);
 
-		// Find maximum flow (all sources and sinks)
-		//float maximumFlow = EdmondsKarp.NodeLimit(); WIP
-
-		// Find each delivery option
-		source = new List<int>();
-		sink = new List<int>();
-		cost = new List<float>();
-		path = new List<int[]>();
+		// Initialise rate and flow trackers
 		remainingRate = new float[nNodes];
 		for (int i = 0; i < nNodes; i++) remainingRate[i] = rate[i];
 		remainingFlow = new float[nNodes];
 		for (int i = 0; i < nNodes; i++) remainingFlow[i] = nodeMaxFlow[i];
+
+		// Calculate distances
+		distance = CalculateDistances(nodeX, nodeY);
+
+		// Find each delivery option
 		for (int a = 0; a < nNodes; a++) if (rate[a] > 0)
 		{
 			// For each source, ...
@@ -126,9 +125,16 @@ public class Problem03Controller : MonoBehaviour
 		int n = x.Length;
 		float[,] d = new float[n, n];
 		for (int a = 0; a < n; a++) for (int b = 0; b < n; b++)
-			d[a, b] = Mathf.Sqrt(
-				Mathf.Pow(x[a] - x[b], 2) + 
-				Mathf.Pow(y[a] - y[b], 2));
+			if (remainingFlow[a] != 0)
+			{
+				d[a, b] = Mathf.Sqrt(
+					Mathf.Pow(x[a] - x[b], 2) + 
+					Mathf.Pow(y[a] - y[b], 2));
+			}
+			else // No supply can flow out of node a
+			{
+				d[a, b] = float.MaxValue;
+			}
 		return d;
 	}
 
@@ -332,7 +338,24 @@ public class Problem03Controller : MonoBehaviour
 			{
 				bool inPath = false;
 				foreach (int j in path[i]) if (j == n) inPath = true;
-				if (inPath) toRemove.Add(i);
+				if (inPath)
+				{
+					toRemove.Add(i);
+
+					// Rebuild path between source and sink
+					int _start = path[i][0];
+					int _end = path[i][path[i].Length - 1];
+					Debug.Log("Recalculating path from "+_start+" to "+_end);
+					float[,] _distance = CalculateDistances(nodeX, nodeY);
+					DijkstraSolution solution = Dijkstra.Algorithm(_start, _end, _distance, distanceExponent);
+					if (solution.cost < float.MaxValue)
+					{
+						source.Add(_start); // Record source index
+						sink.Add(_end); // Record sink index
+						cost.Add(solution.cost); // Record cost of delivery
+						path.Add(solution.path); // Record path of delivery
+					}
+				}
 			}
 			for (int a = 0; a < toRemove.Count; a++)
 			{

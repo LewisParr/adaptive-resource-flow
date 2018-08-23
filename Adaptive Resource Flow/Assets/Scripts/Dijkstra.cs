@@ -33,7 +33,7 @@ public static class Dijkstra
 		{
 			// Select the unvisited node with lowest cost
 			currentNode = DijkstraSelect(unvisitedNodes, minNodeCosts);
-
+			
 			// Calculate tentative costs
 			for (int n = 0; n < nNodes; n++)
 			{
@@ -53,17 +53,21 @@ public static class Dijkstra
 
 			// Check for termination
 			if (!unvisitedNodes.Contains(endNode)) terminate = true;
+			else if (DijkstraSelect(unvisitedNodes, minNodeCosts) == -1) terminate = true;
 		}
 
 		// Build path
 		List<int> path = new List<int>();
-		currentNode = endNode;
-		while (currentNode != startNode)
+		if (minNodeCosts[endNode] < float.MaxValue)
 		{
+			currentNode = endNode;
+			while (currentNode != startNode)
+			{
+				path.Add(currentNode);
+				currentNode = previousNode[currentNode];
+			}
 			path.Add(currentNode);
-			currentNode = previousNode[currentNode];
 		}
-		path.Add(currentNode);
 		int[] bestPath = path.ToArray();
 		System.Array.Reverse(bestPath);
 
