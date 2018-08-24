@@ -10,16 +10,41 @@ public class Problem04Controller : MonoBehaviour
 
 	void OnEnable()
 	{
+		GenerateNodes();
+	}
 
+	void OnDrawGizmos()
+	{
+		// Draw nodes
+		Gizmos.color = Color.green;
+		foreach (Node n in node)
+		{
+			Gizmos.DrawSphere(n.pos, 0.2f);
+		}
 	}
 
 	private void GenerateNodes()
 	{
-		float x = Random.value * numNodes;
-		float y = Random.value * numNodes;
+		if (node == null)
+		{
+			node = new List<Node>();
+		}
 
-		Vector3 pos = new Vector3(x, 0, y);
+		for (int i = 0; i < numNodes; i++)
+		{
+			// Position
+			float x = Random.value * numNodes; // [0, numNodes]
+			float y = Random.value * numNodes; // [0, numNodes]
+			Vector3 pos = new Vector3(x, 0, y);
 
-		node.Add(new Node(pos));
+			// Production
+			float[] prod = new float[1];
+			if (Random.value < 0.25f)
+			{
+				prod[0] = (Random.value - 0.5f) * 2f; // [-1, +1]
+			}
+
+			node.Add(new Node(pos, prod));
+		}
 	}
 }
