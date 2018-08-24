@@ -5,6 +5,7 @@ using UnityEngine;
 public class Problem04Controller : MonoBehaviour
 {
 	public int numNodes = 20;
+	public float productionProb = 0.25f;
 
 	private List<Node> node;
 
@@ -19,6 +20,9 @@ public class Problem04Controller : MonoBehaviour
 		Gizmos.color = Color.green;
 		foreach (Node n in node)
 		{
+			if (n.prod[0] > 0) Gizmos.color = Color.blue;
+			else if (n.prod[0] < 0) Gizmos.color = Color.red;
+			else Gizmos.color = Color.green;
 			Gizmos.DrawSphere(n.pos, 0.2f);
 		}
 	}
@@ -39,7 +43,7 @@ public class Problem04Controller : MonoBehaviour
 
 			// Production
 			float[] prod = new float[1];
-			if (Random.value < 0.25f)
+			if (Random.value < productionProb)
 			{
 				prod[0] = (Random.value - 0.5f) * 2f; // [-1, +1]
 			}
