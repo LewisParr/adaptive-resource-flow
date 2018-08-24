@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class Problem04Controller : MonoBehaviour
 {
+	[Range(8, 24)]
 	public int numNodes = 20;
+	[Range(0.1f, 0.5f)]
 	public float productionProb = 0.25f;
 
 	private List<Node> node;
@@ -12,6 +14,9 @@ public class Problem04Controller : MonoBehaviour
 	void OnEnable()
 	{
 		GenerateNodes();
+
+		Edge testEdge = new Edge();
+		node[0].AddEdge(testEdge);
 	}
 
 	void OnDrawGizmos()
