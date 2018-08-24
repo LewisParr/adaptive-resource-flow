@@ -18,25 +18,41 @@ public class Problem04Controller : MonoBehaviour
 	{
 		frameCounter = 0;
 		allNodesGenerated = false;
+
+		
+		node = new List<Node>();
+		float[] prod = new float[1]; prod[0] = +1f;
+		node.Add(new Node(new Vector3(0, 0, 1), prod, 1f));
+		prod = new float[1]; prod[0] = -0.4f;
+		node.Add(new Node(new Vector3(-0.6f, 0, 0), prod, 1f));
+		prod = new float[1]; prod[0] = -0.6f;
+		node.Add(new Node(new Vector3(+0.6f, 0, 0), prod, 1f));
+		for (int a = 0; a < node.Count; a++)
+		{
+			for (int b = 0; b < node.Count; b++)
+			{
+				if (b != a) node[a].AddDistanceEdge(new DistanceEdge(node[b], (node[a].pos - node[b].pos).magnitude));
+			}
+		}
 	}
 
 	void Update()
 	{
-		frameCounter++;
-
-		if (!allNodesGenerated)
-		{
-			if (frameCounter % 10 == 0)
-			{
-				GenerateNode();
-
-				if (node.Count == numNodes)
-				{
-					allNodesGenerated = true;
-					Debug.Log("All nodes generated.");
-				}
-			}
-		}
+		//frameCounter++;
+//
+		//if (!allNodesGenerated)
+		//{
+		//	if (frameCounter % 10 == 0)
+		//	{
+		//		GenerateNode();
+//
+		//		if (node.Count == numNodes)
+		//		{
+		//			allNodesGenerated = true;
+		//			Debug.Log("All nodes generated.");
+		//		}
+		//	}
+		//}
 	}
 
 	void OnDrawGizmos()
@@ -49,7 +65,25 @@ public class Problem04Controller : MonoBehaviour
 				if (n.prod[0] > 0) Gizmos.color = Color.blue;
 				else if (n.prod[0] < 0) Gizmos.color = Color.red;
 				else Gizmos.color = Color.green;
-				Gizmos.DrawSphere(n.pos, n.maxOut / 5f);
+				//Gizmos.DrawSphere(n.pos, n.maxOut / 5f);
+				Gizmos.DrawSphere(n.pos, 0.2f);
+			}
+		}
+
+		// Draw distance edges
+		if (node != null)
+		{
+			Gizmos.color = Color.white;
+			foreach (Node n in node)
+			{
+				foreach (DistanceEdge d in n.distance)
+				{
+					Vector3 pointA = n.pos;
+					Debug.Log("Point A: "+pointA);
+					Vector3 pointB = d.target.pos;
+					Debug.Log("Point B: "+pointB);
+					Gizmos.DrawLine(n.pos, d.target.pos);
+				}
 			}
 		}
 	}
