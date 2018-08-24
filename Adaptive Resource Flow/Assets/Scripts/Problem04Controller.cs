@@ -23,7 +23,7 @@ public class Problem04Controller : MonoBehaviour
 			if (n.prod[0] > 0) Gizmos.color = Color.blue;
 			else if (n.prod[0] < 0) Gizmos.color = Color.red;
 			else Gizmos.color = Color.green;
-			Gizmos.DrawSphere(n.pos, 0.2f);
+			Gizmos.DrawSphere(n.pos, n.maxOut / 5f);
 		}
 	}
 
@@ -48,7 +48,10 @@ public class Problem04Controller : MonoBehaviour
 				prod[0] = (Random.value - 0.5f) * 2f; // [-1, +1]
 			}
 
-			node.Add(new Node(pos, prod));
+			// Infrastructure
+			float maxOut = (Random.value * 0.5f) + 0.5f; // [+0.5, +1.0]
+
+			node.Add(new Node(pos, prod, maxOut));
 		}
 	}
 }
