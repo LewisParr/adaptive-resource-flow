@@ -8,7 +8,7 @@ public class Node
 	public float[] prod;
 	public float maxOut;
 
-	public List<Edge> edge;
+	public List<DistanceEdge> distance;
 
 	public Node(Vector3 pos, float[] prod, float maxOut)
 	{
@@ -17,13 +17,10 @@ public class Node
 		this.maxOut = maxOut;
 	}
 
-	public void AddEdge(Edge edge)
+	public void AddDistanceEdge(DistanceEdge distance)
 	{
-		if (this.edge == null)
-		{
-			this.edge = new List<Edge>();
-		}
+		if (this.distance == null) this.distance = new List<DistanceEdge>();
 
-		this.edge.Add(edge);
+		this.distance.Add(distance);
 	}
 }

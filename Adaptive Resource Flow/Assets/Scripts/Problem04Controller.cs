@@ -11,52 +11,76 @@ public class Problem04Controller : MonoBehaviour
 
 	private List<Node> node;
 
+	private int frameCounter;
+	private bool allNodesGenerated;
+
 	void OnEnable()
 	{
-		GenerateNodes();
+		frameCounter = 0;
+		allNodesGenerated = false;
+	}
 
-		Edge testEdge = new Edge();
-		node[0].AddEdge(testEdge);
+	void Update()
+	{
+		frameCounter++;
+
+		if (!allNodesGenerated)
+		{
+			if (frameCounter % 10 == 0)
+			{
+				GenerateNode();
+
+				if (node.Count == numNodes)
+				{
+					allNodesGenerated = true;
+					Debug.Log("All nodes generated.");
+				}
+			}
+		}
 	}
 
 	void OnDrawGizmos()
 	{
 		// Draw nodes
-		Gizmos.color = Color.green;
-		foreach (Node n in node)
+		if (node != null)
 		{
-			if (n.prod[0] > 0) Gizmos.color = Color.blue;
-			else if (n.prod[0] < 0) Gizmos.color = Color.red;
-			else Gizmos.color = Color.green;
-			Gizmos.DrawSphere(n.pos, n.maxOut / 5f);
+			foreach (Node n in node)
+			{
+				if (n.prod[0] > 0) Gizmos.color = Color.blue;
+				else if (n.prod[0] < 0) Gizmos.color = Color.red;
+				else Gizmos.color = Color.green;
+				Gizmos.DrawSphere(n.pos, n.maxOut / 5f);
+			}
 		}
 	}
 
-	private void GenerateNodes()
+	private void GenerateNode()
 	{
-		if (node == null)
+		if (node == null) node = new List<Node>();
+
+		int n = node.Count;
+
+		// Position
+		float x = Random.value * numNodes; // [0, numNodes]
+		float y = Random.value * numNodes; // [0, numNodes]
+		Vector3 pos = new Vector3(x, 0, y);
+
+		// Production
+		float[] prod = new float[1];
+		if (Random.value < productionProb) prod[0] = (Random.value - 0.5f) * 2f; // [-1, +1]
+		else prod[0] = 0f;
+
+		// Infrastructure
+		float maxOut = (Random.value * 0.5f) + 0.5f; // [+0.5, +1.0]
+
+		// Create node
+		node.Add(new Node(pos, prod, maxOut));
+
+		// Add new distance edges
+		for (int i = 0; i < n; i++)
 		{
-			node = new List<Node>();
-		}
-
-		for (int i = 0; i < numNodes; i++)
-		{
-			// Position
-			float x = Random.value * numNodes; // [0, numNodes]
-			float y = Random.value * numNodes; // [0, numNodes]
-			Vector3 pos = new Vector3(x, 0, y);
-
-			// Production
-			float[] prod = new float[1];
-			if (Random.value < productionProb)
-			{
-				prod[0] = (Random.value - 0.5f) * 2f; // [-1, +1]
-			}
-
-			// Infrastructure
-			float maxOut = (Random.value * 0.5f) + 0.5f; // [+0.5, +1.0]
-
-			node.Add(new Node(pos, prod, maxOut));
+			node[i].AddDistanceEdge(new DistanceEdge(node[n], (node[n].pos - node[i].pos).magnitude));
+			node[n].AddDistanceEdge(new DistanceEdge(node[i], (node[i].pos - node[n].pos).magnitude));
 		}
 	}
 }
