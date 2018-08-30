@@ -106,13 +106,9 @@ public static class LinearProgramming
 
                 // Find and record target node index
                 Node targetNode = d.target;
-                foreach (SystemNode candidateNode in systemNode)
-                {
-                    if (candidateNode == targetNode)
-                    {
-                        Debug.Log("Found!");
-                    }
-                }
+                for (int i = 0; i < systemNode.Count; i++)
+                    if (systemNode[i] == targetNode)
+                        edgeTarget[edgeIndex] = i;
             }
         }
 
@@ -128,6 +124,33 @@ public static class LinearProgramming
         {
             // m[c, 0] is the cost of that edge per unit flow
             m[c, 0] = edgeCost[c - 1];
+        }
+
+        // Add flow conservation variables for nodes
+        for (int r = 1; r < numNodes + 1; r++)
+        {
+            // A row corresponds to each node
+            for (int c = 1; c < numEdges + 1; c++)
+            {
+                // If the corresponding edge with index (c-1)
+                // flows out of node with index (r-1) then assign
+                // +1; if it flows into node then assign -1; 
+                // otherwise leave at 0.
+                if (edgeSource[c-1] == (r-1))
+                {
+                    //Debug.Log("Edge " + (c-1).ToString() + " flows out of node " + (r-1).ToString());
+                    m[c, r] = +1;
+                }
+                else if (edgeTarget[c-1] == (r-1))
+                {
+                    //Debug.Log("Edge " + (c - 1).ToString() + " flows into node " + (r - 1).ToString());
+                    m[c, r] = -1;
+                }
+                else
+                {
+                    //Debug.Log("Edge " + (c - 1).ToString() + " does not flow into or out of node " + (r - 1).ToString());
+                }
+            }
         }
 
         // Display matrix
