@@ -5,16 +5,12 @@ using UnityEngine;
 public class Node
 {
 	public Vector3 pos;
-	public float[] prod;
-	public float maxOut;
 
 	public List<DistanceEdge> distance;
 
-	public Node(Vector3 pos, float[] prod, float maxOut)
+	public Node(Vector3 pos)
 	{
 		this.pos = pos;
-		this.prod = prod;
-		this.maxOut = maxOut;
 	}
 
 	public void AddDistanceEdge(DistanceEdge distance)
@@ -23,4 +19,23 @@ public class Node
 
 		this.distance.Add(distance);
 	}
+}
+
+public class SystemNode : Node
+{
+    public float[] prod;
+    public float maxOut;
+
+    public SystemNode(Vector3 pos, float[] prod, float maxOut) : base(pos)
+    {
+        this.pos = pos;
+        this.prod = prod;
+        this.maxOut = maxOut;
+    }
+
+    public SystemNode TakeCopy()
+    {
+        SystemNode copy = new SystemNode(this.pos, this.prod, this.maxOut);
+        return copy;
+    }
 }

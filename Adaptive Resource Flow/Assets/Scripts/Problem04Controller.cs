@@ -9,7 +9,7 @@ public class Problem04Controller : MonoBehaviour
 	[Range(0.1f, 0.5f)]
 	public float productionProb = 0.25f;
 
-	private List<Node> node;
+	private List<SystemNode> node;
 
 	private int frameCounter;
 	private bool allNodesGenerated;
@@ -18,15 +18,14 @@ public class Problem04Controller : MonoBehaviour
 	{
 		frameCounter = 0;
 		allNodesGenerated = false;
-
 		
-		node = new List<Node>();
+		node = new List<SystemNode>();
 		float[] prod = new float[1]; prod[0] = +1f;
-		node.Add(new Node(new Vector3(0, 0, 1), prod, 1f));
+		node.Add(new SystemNode(new Vector3(0, 0, 1), prod, 1f));
 		prod = new float[1]; prod[0] = -0.4f;
-		node.Add(new Node(new Vector3(-0.6f, 0, 0), prod, 1f));
+		node.Add(new SystemNode(new Vector3(-0.6f, 0, 0), prod, 1f));
 		prod = new float[1]; prod[0] = -0.6f;
-		node.Add(new Node(new Vector3(+0.6f, 0, 0), prod, 1f));
+		node.Add(new SystemNode(new Vector3(+0.6f, 0, 0), prod, 1f));
 		for (int a = 0; a < node.Count; a++)
 		{
 			for (int b = 0; b < node.Count; b++)
@@ -34,6 +33,8 @@ public class Problem04Controller : MonoBehaviour
 				if (b != a) node[a].AddDistanceEdge(new DistanceEdge(node[b], (node[a].pos - node[b].pos).magnitude));
 			}
 		}
+
+        LinearProgramming.Minimise(node);
 	}
 
 	void Update()
@@ -60,13 +61,13 @@ public class Problem04Controller : MonoBehaviour
 		// Draw nodes
 		if (node != null)
 		{
-			foreach (Node n in node)
+			foreach (SystemNode n in node)
 			{
 				if (n.prod[0] > 0) Gizmos.color = Color.blue;
 				else if (n.prod[0] < 0) Gizmos.color = Color.red;
 				else Gizmos.color = Color.green;
 				//Gizmos.DrawSphere(n.pos, n.maxOut / 5f);
-				Gizmos.DrawSphere(n.pos, 0.2f);
+				Gizmos.DrawSphere(n.pos, 0.1f);
 			}
 		}
 
@@ -74,14 +75,10 @@ public class Problem04Controller : MonoBehaviour
 		if (node != null)
 		{
 			Gizmos.color = Color.white;
-			foreach (Node n in node)
+			foreach (SystemNode n in node)
 			{
 				foreach (DistanceEdge d in n.distance)
 				{
-					Vector3 pointA = n.pos;
-					Debug.Log("Point A: "+pointA);
-					Vector3 pointB = d.target.pos;
-					Debug.Log("Point B: "+pointB);
 					Gizmos.DrawLine(n.pos, d.target.pos);
 				}
 			}
@@ -90,7 +87,7 @@ public class Problem04Controller : MonoBehaviour
 
 	private void GenerateNode()
 	{
-		if (node == null) node = new List<Node>();
+		if (node == null) node = new List<SystemNode>();
 
 		int n = node.Count;
 
@@ -108,7 +105,7 @@ public class Problem04Controller : MonoBehaviour
 		float maxOut = (Random.value * 0.5f) + 0.5f; // [+0.5, +1.0]
 
 		// Create node
-		node.Add(new Node(pos, prod, maxOut));
+		node.Add(new SystemNode(pos, prod, maxOut));
 
 		// Add new distance edges
 		for (int i = 0; i < n; i++)
