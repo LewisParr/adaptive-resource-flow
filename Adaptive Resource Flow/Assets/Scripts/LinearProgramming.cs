@@ -153,6 +153,20 @@ public static class LinearProgramming
             }
         }
 
+        // Add capacity constraint variables for edges
+        for (int r = numNodes + 1; r < numNodes + 1 + numEdges; r++)
+        {
+            // A row corresponds to each edge
+            // edge index: r - numNodes - 1
+
+            // Assign +1 to column corresponding to this edge
+            // Edge index: c - 1
+            m[r - numNodes, r] = +1;
+
+            // Add +1 to column corresponding to this artificial variable
+            m[r - numNodes + numEdges, r] = +1;
+        }
+
         // Display matrix
         for (int r = 0; r < numRow; r++)
         {
