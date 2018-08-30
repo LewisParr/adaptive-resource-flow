@@ -45,6 +45,9 @@ public static class LinearProgramming
 
             // Set original production to zero
             for (int k = 0; k < systemNode[i].prod.Length; k++) systemNode[i].prod[k] = 0;
+
+            // Set original max outflow to infinite
+            systemNode[i].maxOut = float.MaxValue;
         }
     }
 
@@ -75,8 +78,9 @@ public static class LinearProgramming
         // 1 artificial variable for each constraint
         //  (conservation of flow at each node and 
         //  capacity limit of each edge)
-        // MAYBE NOT THE ARTIFICIAL VARIABLES FOR THE NODES
-        // BECAUSE THEY ARE =.
+        // Artificial variables are needed for the node
+        //  constraints because producers may not flow
+        //  out all that is produced
         // 1 for values of each constraint
 
         // Height of matrix (number of rows) is:
@@ -112,7 +116,7 @@ public static class LinearProgramming
             }
         }
 
-        int numCol = 1 + numEdges + numEdges + 1;
+        int numCol = 1 + numEdges + numNodes + numEdges + 1;
         int numRow = 1 + numNodes + numEdges;
 
         // Create matrix
@@ -123,7 +127,7 @@ public static class LinearProgramming
         for (int c = 1; c < numEdges + 1; c++)
         {
             // m[c, 0] is the cost of that edge per unit flow
-            m[c, 0] = edgeCost[c - 1];
+            m[c, 0] = -edgeCost[c - 1];
         }
 
         // Add flow conservation variables for nodes
@@ -150,6 +154,9 @@ public static class LinearProgramming
                 {
                     //Debug.Log("Edge " + (c - 1).ToString() + " does not flow into or out of node " + (r - 1).ToString());
                 }
+
+                // Add artificial variable
+                m[1 + numEdges + (r - 1), r] = +1;
             }
         }
 
@@ -164,7 +171,27 @@ public static class LinearProgramming
             m[r - numNodes, r] = +1;
 
             // Add +1 to column corresponding to this artificial variable
-            m[r - numNodes + numEdges, r] = +1;
+            m[r - numNodes + numNodes + numEdges, r] = +1;
+        }
+
+        // Add constraint values to final column
+        // Objective function
+        m[numCol - 1, 0] = 0f;
+        // Each node's production rate
+        for (int r = 1; r < numNodes + 1; r++)
+        {
+            m[numCol - 1, r] = systemNode[r - 1].prod[0];
+        }
+        // Each edge's capacity
+        for (int r = numNodes + 1; r < numNodes + 1 + numEdges; r++)
+        {
+            // If the source node of this edge has a maxOut value
+            // then apply it as the capacity of this edge.
+            // Should be infinite for edges between variables that
+            // are not surrogates.
+
+            //Debug.Log(systemNode[edgeSource[r - numNodes - 1]].maxOut);
+            m[numCol - 1, r] = systemNode[edgeSource[r - numNodes - 1]].maxOut;
         }
 
         // Display matrix
