@@ -16,7 +16,9 @@ public static class LinearProgramming
         Surrogate(systemNode);
 
         //DefineProblem(copy);
-        DefineProblem(systemNode);
+        float[,] matrix = DefineProblem(systemNode);
+
+        SimplexMethodIteration(matrix);
 	}
 
     private static void Surrogate(List<SystemNode> systemNode)
@@ -47,11 +49,11 @@ public static class LinearProgramming
             for (int k = 0; k < systemNode[i].prod.Length; k++) systemNode[i].prod[k] = 0;
 
             // Set original max outflow to infinite
-            systemNode[i].maxOut = float.MaxValue;
+            systemNode[i].maxOut = Mathf.Infinity;
         }
     }
 
-    private static void DefineProblem(List<SystemNode> systemNode)
+    private static float[,] DefineProblem(List<SystemNode> systemNode)
     {
         // 1 objective function
         // An augmented constraint for each node
@@ -203,7 +205,78 @@ public static class LinearProgramming
                 row += m[c, r];
                 row += " ; ";
             }
-            Debug.Log(row);
+            //Debug.Log(row);
         }
+
+        // Output matrix
+        return m;
+    }
+
+    private static void SimplexMethodIteration(float[,] matrix)
+    {
+        // Entering variable selection
+        // Select the most negative entry in the objective row
+        int numCol = matrix.GetLength(0);
+        int numRow = matrix.GetLength(1);
+
+        // Find minimum value
+        float minObjValue = float.MaxValue;
+        for (int col = 0; col < numCol; col++) if (matrix[col, 0] < minObjValue) minObjValue = matrix[col, 0];
+
+        Debug.Log("Pivot column value: " + minObjValue);
+
+        // Check if minimum value is negative
+        if (minObjValue < 0)
+        {
+            // Find column index of minimum value
+            int pivotCol = -1;
+            int c = -1;
+            while (pivotCol == -1)
+            {
+                c++;
+                if (matrix[c, 0] == minObjValue) pivotCol = c;
+            }
+
+            Debug.Log("Pivot column: " + pivotCol);
+
+            // Leaving variable selection
+            // Divide the final column values by the value in
+            // that row at the pivot column. Select the lowest
+            // value.
+            float minEndValue = float.MaxValue;
+            for (int row = 1; row < numRow; row++)
+            {
+                float endValue = matrix[numCol - 1, row];
+                float pivotValue = matrix[pivotCol, row];
+                float testValue = endValue / pivotValue;
+                if (testValue < minEndValue)
+                {
+                    // Do not allow selection of negative infinity
+                    if (testValue != -Mathf.Infinity)
+                    {
+                        //Debug.Log("End value: " + endValue + "; pivot value: " + pivotValue + ";  calculated value: " + testValue);
+                        minEndValue = testValue;
+                    }
+                    else
+                    {
+                        //Debug.Log("Resulting value is negative infinity.");
+                    }
+                }
+            }
+
+            Debug.Log("Pivot row value: " + minEndValue);
+
+            // Find row index of minimum value
+            int pivotRow = -1;
+            int r = 0;
+            while (pivotRow == -1)
+            {
+                r++;
+                if (matrix[numCol - 1, r] / matrix[pivotCol, r] == minEndValue) pivotRow = r;
+            }
+
+            Debug.Log("Pivot row: " + pivotRow);
+        }
+        else Debug.Log("Entering variable is not negative.");
     }
 }
