@@ -193,25 +193,40 @@ public static class LinearProgramming
 
         PrintTableau(tableau);
 
-        // Step 3
-        // Locate the most negative entry in the bottom row.
-        int enteringColumn = SelectEntering(tableau);
-        
-        if (enteringColumn != -1)
+        bool terminate = false;
+        int pivotCount = 0;
+        while (!terminate)
         {
-            // Step 4
-            // Locate the smallest nonnegative ratio bi / aij.
-            int departingRow = SelectDeparting(tableau, enteringColumn);
+            // Step 3
+            // Locate the most negative entry in the bottom row.
+            int enteringColumn = SelectEntering(tableau);
 
-            if (departingRow != -1)
+            if (enteringColumn != -1)
             {
-                // Step 5
-                // Set pivot to 1, all others to zero.
-                tableau = Pivot(tableau, enteringColumn, departingRow);
-            }
-        }
+                // Step 4
+                // Locate the smallest nonnegative ratio bi / aij.
+                int departingRow = SelectDeparting(tableau, enteringColumn);
 
-        PrintTableau(tableau);
+                if (departingRow != -1)
+                {
+                    // Step 5
+                    // Set pivot to 1, all others to zero.
+                    Pivot(tableau, enteringColumn, departingRow);
+                }
+                else
+                {
+                    terminate = true;
+                }
+            }
+            else
+            {
+                terminate = true;
+            }
+
+            pivotCount++;
+            Debug.Log("Pivot number: " + pivotCount);
+            PrintTableau(tableau);
+        }
     }
 
     public static int SelectEntering(float[,] tableau)
@@ -278,36 +293,37 @@ public static class LinearProgramming
         }
     }
 
-    public static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
+    public static void Pivot(float[,] tableau, int enteringColumn, int departingRow)
     {
         int numRow = tableau.GetLength(0);
         int numCol = tableau.GetLength(1);
-        float[,] newTableau = new float[numRow, numCol];
+
+        // Scale departing row so that pivot value is 1
+        float scaleValue = tableau[departingRow, enteringColumn];
+        for (int c = 0; c < numCol; c++)
+        {
+            tableau[departingRow, c] = tableau[departingRow, c] / scaleValue;
+        }
+
+        // Set other values in entering column to 0
         for (int r = 0; r < numRow; r++)
         {
             if (r != departingRow)
             {
+                float coefficient = -tableau[r, enteringColumn];
                 for (int c = 0; c < numCol; c++)
                 {
-                    newTableau[r, c] = ((-1 * tableau[r, enteringColumn]) * tableau[departingRow, c]) + tableau[r, c];
-                }
-            }
-            else
-            {
-                for (int c = 0; c < numCol; c++)
-                {
-                    newTableau[r, c] = tableau[r, c];
+                    tableau[r, c] = (coefficient * tableau[departingRow, c]) + tableau[r, c];
                 }
             }
         }
-        return newTableau;
     }
 
     public static void PrintTableau(float[,] tableau)
     {
         int numRow = tableau.GetLength(0);
         int numCol = tableau.GetLength(1);
-        Debug.Log("Rows: " + numRow + ", Columns: " + numCol);
+        //Debug.Log("Rows: " + numRow + ", Columns: " + numCol);
 
         for (int r = 0; r < numRow; r++)
         {
