@@ -16,9 +16,20 @@ public class DistanceEdge : Edge
 {
 	public float distance;
 
-	public DistanceEdge(Node target, float distance)
+    public DistanceEdge(Node target, float distance)
 	{
 		this.target = target;
 		this.distance = distance;
 	}
+}
+
+public class ResourceEdge : Edge
+{
+    public float magnitude;
+
+    public ResourceEdge(Node target, float magnitude)
+    {
+        this.target = target;
+        this.magnitude = magnitude;
+    }
 }

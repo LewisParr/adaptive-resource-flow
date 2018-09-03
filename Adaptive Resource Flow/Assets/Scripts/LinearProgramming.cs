@@ -93,7 +93,10 @@ public static class LinearProgramming
 
         //PrintTableau(matrix);
 
-        Minimise(matrix);
+        float[] result = Minimise(matrix);
+
+        // Interpret result
+        
     }
 
     public static float[] Maximise(float[,] tableau, bool dual = false)
@@ -235,7 +238,7 @@ public static class LinearProgramming
             // Read results form tableau normally.
 
             // Output nothing
-            float[] output = new float[0];
+            float[] output = new float[0];        // TODO TODO TODO
             return output;
         }
         else
@@ -403,7 +406,7 @@ public static class LinearProgramming
         }
     }
 
-    public static void Minimise(float[,] matrix)
+    public static float[] Minimise(float[,] matrix)
 	{
         #region Description
         /* 
@@ -497,23 +500,8 @@ public static class LinearProgramming
         
         float[] bottomRow = Maximise(tableau, true);
 
-        //string output = "Bottom row: ";
-        //foreach (float f in bottomRow)
-        //{
-        //    output += f;
-        //    output += ", ";
-        //}
-        //Debug.Log(output);
-
-        /*
-         * Far right value is the minimised objective function value.
-         * Values in slack variable columns correspond to decision variable values.
-         */
-
-        //Debug.Log("Minimum cost: " + bottomRow[bottomRow.Length - 1] + ", with: ");
-        //Debug.Log("X1: " + bottomRow[2]);
-        //Debug.Log("X2: " + bottomRow[3]);
-        
+        // Return result
+        return bottomRow;
     }
 
     private static float[,] InsertSlackVariables(float[,] matrix)
