@@ -56,7 +56,7 @@ public static class LinearProgramming
      * -4   -6    0    0    0    0 <-- current z-value
      */
 
-    public static void MinimumCostFlow(List<SystemNode> systemNode)
+    public static LinearProgrammingSolution MinimumCostFlow(List<SystemNode> systemNode)
     {
         Debug.Log("Performing minimum-cost flow analysis.");
 
@@ -93,10 +93,22 @@ public static class LinearProgramming
 
         //PrintTableau(matrix);
 
-        float[] result = Minimise(matrix);
+        float[] rawResult = Minimise(matrix);
 
         // Interpret result
-        
+        float[] flows = new float[numEdges];
+        float cost = rawResult[rawResult.Length - 1];
+        for (int i = 0; i < numEdges; i++)
+        {
+            int index = rawResult.Length - numEdges - 1 + i;
+            flows[i] = rawResult[index];
+        }
+
+        // Build solution
+        LinearProgrammingSolution solution = new LinearProgrammingSolution(flows, cost);
+
+        // Return the solution
+        return solution;
     }
 
     public static float[] Maximise(float[,] tableau, bool dual = false)
@@ -267,7 +279,7 @@ public static class LinearProgramming
             // Locate the most negative entry in the bottom row.
             int enteringColumn = SelectEntering(tableau);
 
-            Debug.Log("Entering column: " + enteringColumn);
+            //Debug.Log("Entering column: " + enteringColumn);
 
             if (enteringColumn != -1)
             {
@@ -275,7 +287,7 @@ public static class LinearProgramming
                 // Locate the smallest nonnegative ratio bi / aij.
                 int departingRow = SelectDeparting(tableau, enteringColumn);
 
-                Debug.Log("Departing row: " + departingRow);
+                //Debug.Log("Departing row: " + departingRow);
 
                 if (departingRow != -1)
                 {
@@ -293,7 +305,7 @@ public static class LinearProgramming
                 terminate = true;
             }
 
-            PrintTableau(tableau);
+            //PrintTableau(tableau);
         }
         return tableau;
     }
@@ -485,7 +497,7 @@ public static class LinearProgramming
 
         Debug.Log("Matrix transpose formed.");
 
-        PrintTableau(matrix);
+        //PrintTableau(matrix);
 
         // Step 3
         // Form the dual maximisation problem.
@@ -493,7 +505,7 @@ public static class LinearProgramming
 
         Debug.Log("Slack variables inserted.");
 
-        PrintTableau(tableau);
+        //PrintTableau(tableau);
 
         // Step 4
         // Apply the simplex method.
@@ -710,5 +722,17 @@ public static class LinearProgramming
 
         // Return the matrix
         return matrix;
+    }
+}
+
+public class LinearProgrammingSolution
+{
+    public float[] flows;
+    public float cost;
+
+    public LinearProgrammingSolution(float[] flows, float cost)
+    {
+        this.flows = flows;
+        this.cost = cost;
     }
 }
