@@ -79,7 +79,7 @@ public static class LinearProgramming
         // ... transpose, etc. ...
     }
 
-    public static void Maximise(float[,] tableau)
+    public static float[] Maximise(float[,] tableau, bool dual = false)
     {
         #region Description
         /*
@@ -207,7 +207,35 @@ public static class LinearProgramming
         //tableau[2, 0] = 2; tableau[2, 1] = 5; tableau[2, 2] = 0; tableau[2, 3] = 0; tableau[2, 4] = 1; tableau[2, 5] = 90;
         //tableau[3, 0] = -4; tableau[3, 1] = -6; tableau[3, 2] = 0; tableau[3, 3] = 0; tableau[3, 4] = 0; tableau[3, 5] = 0;
 
+        PrintTableau(tableau);
+
         tableau = SimplexMethod(tableau);
+
+        Debug.Log("Simplex method performed.");
+
+        if (!dual)
+        {
+            // Read results form tableau normally.
+
+            // Output nothing
+            float[] output = new float[0];
+            return output;
+        }
+        else
+        {
+            /*
+             * Slack variables represent decision variables of original minimisation problem.
+             * Collect values from corresponding column in bottom row.
+             */
+
+            // Return bottom row
+            float[] output = new float[tableau.GetLength(1)];
+            for (int c = 0; c < tableau.GetLength(1); c++)
+            {
+                output[c] = tableau[tableau.GetLength(0) - 1, c];
+            }
+            return output;
+        }
     }
 
     public static float[,] SimplexMethod(float[,] tableau)
@@ -240,6 +268,8 @@ public static class LinearProgramming
             {
                 terminate = true;
             }
+
+            PrintTableau(tableau);
         }
         return tableau;
     }
@@ -354,6 +384,7 @@ public static class LinearProgramming
 
     public static void Minimise()
 	{
+        #region Description
         /* 
          * A minimisation problem is in STANDARD FORM if the objective function
          * x = c1x1 + c2x2 + ... + cnxn
@@ -411,27 +442,51 @@ public static class LinearProgramming
          *    the minimum value of w. Moreover, the values of x1, x2, ..., and xn will occur in the
          *    bottom row of the final simplex tableau, in the columns corresponding to the slack variables.
          */
+        #endregion
 
         int numRow = 3;
         int numCol = 3;
 
         // Create a test augmented matrix with 2 decision variables (Step 1)
         float[,] matrix = new float[numRow, numCol]; // (row, col)
-        matrix[0, 0] = 2f; matrix[0, 1] = 1f; matrix[0, 2] = 6f;
-        matrix[1, 0] = 1f; matrix[1, 1] = 1f; matrix[1, 2] = 4f;
+        matrix[0, 0] = 2f; matrix[0, 1] = 1f; matrix[0, 2] = -6f;
+        matrix[1, 0] = 1f; matrix[1, 1] = 1f; matrix[1, 2] = -4f;
         matrix[2, 0] = 3f; matrix[2, 1] = 2f; matrix[2, 2] = 0f;
+
+        Debug.Log("Test matrix created.");
 
         // Step 2
         // Form the transpose of the augmented matrix.
         matrix = Transpose(matrix);
 
+        Debug.Log("Matrix transpose formed.");
+
         // Step 3
         // Form the dual maximisation problem.
         float[,] tableau = InsertSlackVariables(matrix);
 
+        Debug.Log("Slack variables inserted.");
+
         // Step 4
         // Apply the simplex method.
-        Maximise(tableau);
+        float[] bottomRow = Maximise(tableau, true);
+
+        string output = "Bottom row: ";
+        foreach (float f in bottomRow)
+        {
+            output += f;
+            output += ", ";
+        }
+        Debug.Log(output);
+
+        /*
+         * Far right value is the minimised objective function value.
+         * Values in slack variable columns correspond to decision variable values.
+         */
+
+        Debug.Log("Minimum cost: " + bottomRow[bottomRow.Length - 1] + ", with: ");
+        Debug.Log("X1: " + bottomRow[2]);
+        Debug.Log("X2: " + bottomRow[3]);
     }
 
     private static float[,] InsertSlackVariables(float[,] matrix)
@@ -445,23 +500,35 @@ public static class LinearProgramming
 
         float[,] tableau = new float[numRow, numCol];
 
-        // Insert matrix values
+        //PrintTableau(tableau);
+
+        // Insert matrix values (except b-values)
         for (int r = 0; r < numRow; r++)
         {
-            for (int c = 0; c < matrix.GetLength(1); c++)
+            for (int c = 0; c < matrix.GetLength(1) - 1; c++)
             {
                 tableau[r, c] = matrix[r, c];
             }
         }
 
+        //PrintTableau(tableau);
+
+        // Insert b-values
+        for (int r = 0; r < numRow; r++)
+        {
+            tableau[r, numCol - 1] = matrix[r, matrix.GetLength(1) - 1];
+        }
+
+        //PrintTableau(tableau);
+
         // Insert slack values
         for (int r = 0; r < numRow - 1; r++)
         {
             /*
-             * Constraint with index r has a slack variable in column matrix.GetLength(1) + r.
+             * Constraint with index r has a slack variable in column matrix.GetLength(1) + r - 1.
              */
 
-            tableau[r, r + matrix.GetLength(1)] = 1f;
+            tableau[r, r + matrix.GetLength(1) - 1] = 1f;
         }
 
         // Return tableau
