@@ -34,7 +34,7 @@ public class Problem04Controller : MonoBehaviour
 			}
 		}
 
-        LinearProgramming.Minimise();
+        LinearProgramming.MinimumCostFlow(node);
 	}
 
 	void Update()

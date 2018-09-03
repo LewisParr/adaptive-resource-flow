@@ -71,12 +71,29 @@ public static class LinearProgramming
 
         Debug.Log("Surrogate nodes inserted.");
 
-        //float[,] tableau = BuildTableau(copy);
-        float[,] tableau = BuildTableau(systemNode);
+        // Count the number of nodes and edges
+        int numNodes = 0;
+        int numEdges = 0;
+        foreach (SystemNode n in systemNode)
+        {
+            numNodes++;
+            foreach (DistanceEdge d in n.distance)
+            {
+                numEdges++;
+            }
+        }
 
-        Debug.Log("Tableau constructed.");
+        Debug.Log("Number of nodes: " + numNodes);
+        Debug.Log("Number of edges: " + numEdges);
 
-        // ... transpose, etc. ...
+        //float[,] tableau = BuildMatrix(copy, numNodes, numEdges);
+        float[,] matrix = BuildMatrix(systemNode, numNodes, numEdges);
+
+        Debug.Log("Augmented matrix constructed.");
+
+        //PrintTableau(matrix);
+
+        Minimise(matrix);
     }
 
     public static float[] Maximise(float[,] tableau, bool dual = false)
@@ -197,8 +214,8 @@ public static class LinearProgramming
          */
         #endregion
 
-        int numRow = 4;
-        int numCol = 6;
+        //int numRow = 4;
+        //int numCol = 6;
 
         // Create a test tableau with two decision variables (this is Step 2)
         //float[,] tableau = new float[numRow, numCol]; // (row, col)
@@ -207,7 +224,7 @@ public static class LinearProgramming
         //tableau[2, 0] = 2; tableau[2, 1] = 5; tableau[2, 2] = 0; tableau[2, 3] = 0; tableau[2, 4] = 1; tableau[2, 5] = 90;
         //tableau[3, 0] = -4; tableau[3, 1] = -6; tableau[3, 2] = 0; tableau[3, 3] = 0; tableau[3, 4] = 0; tableau[3, 5] = 0;
 
-        PrintTableau(tableau);
+        //PrintTableau(tableau);
 
         tableau = SimplexMethod(tableau);
 
@@ -247,11 +264,15 @@ public static class LinearProgramming
             // Locate the most negative entry in the bottom row.
             int enteringColumn = SelectEntering(tableau);
 
+            Debug.Log("Entering column: " + enteringColumn);
+
             if (enteringColumn != -1)
             {
                 // Step 4
                 // Locate the smallest nonnegative ratio bi / aij.
                 int departingRow = SelectDeparting(tableau, enteringColumn);
+
+                Debug.Log("Departing row: " + departingRow);
 
                 if (departingRow != -1)
                 {
@@ -382,7 +403,7 @@ public static class LinearProgramming
         }
     }
 
-    public static void Minimise()
+    public static void Minimise(float[,] matrix)
 	{
         #region Description
         /* 
@@ -444,16 +465,16 @@ public static class LinearProgramming
          */
         #endregion
 
-        int numRow = 3;
-        int numCol = 3;
+        //int numRow = 3;
+        //int numCol = 3;
 
         // Create a test augmented matrix with 2 decision variables (Step 1)
-        float[,] matrix = new float[numRow, numCol]; // (row, col)
-        matrix[0, 0] = 2f; matrix[0, 1] = 1f; matrix[0, 2] = -6f;
-        matrix[1, 0] = 1f; matrix[1, 1] = 1f; matrix[1, 2] = -4f;
-        matrix[2, 0] = 3f; matrix[2, 1] = 2f; matrix[2, 2] = 0f;
+        //float[,] matrix = new float[numRow, numCol]; // (row, col)
+        //matrix[0, 0] = 2f; matrix[0, 1] = 1f; matrix[0, 2] = -6f;
+        //matrix[1, 0] = 1f; matrix[1, 1] = 1f; matrix[1, 2] = -4f;
+        //matrix[2, 0] = 3f; matrix[2, 1] = 2f; matrix[2, 2] = 0f;
 
-        Debug.Log("Test matrix created.");
+        //Debug.Log("Test matrix created.");
 
         // Step 2
         // Form the transpose of the augmented matrix.
@@ -461,32 +482,38 @@ public static class LinearProgramming
 
         Debug.Log("Matrix transpose formed.");
 
+        PrintTableau(matrix);
+
         // Step 3
         // Form the dual maximisation problem.
         float[,] tableau = InsertSlackVariables(matrix);
 
         Debug.Log("Slack variables inserted.");
 
+        PrintTableau(tableau);
+
         // Step 4
         // Apply the simplex method.
+        
         float[] bottomRow = Maximise(tableau, true);
 
-        string output = "Bottom row: ";
-        foreach (float f in bottomRow)
-        {
-            output += f;
-            output += ", ";
-        }
-        Debug.Log(output);
+        //string output = "Bottom row: ";
+        //foreach (float f in bottomRow)
+        //{
+        //    output += f;
+        //    output += ", ";
+        //}
+        //Debug.Log(output);
 
         /*
          * Far right value is the minimised objective function value.
          * Values in slack variable columns correspond to decision variable values.
          */
 
-        Debug.Log("Minimum cost: " + bottomRow[bottomRow.Length - 1] + ", with: ");
-        Debug.Log("X1: " + bottomRow[2]);
-        Debug.Log("X2: " + bottomRow[3]);
+        //Debug.Log("Minimum cost: " + bottomRow[bottomRow.Length - 1] + ", with: ");
+        //Debug.Log("X1: " + bottomRow[2]);
+        //Debug.Log("X2: " + bottomRow[3]);
+        
     }
 
     private static float[,] InsertSlackVariables(float[,] matrix)
@@ -573,8 +600,8 @@ public static class LinearProgramming
             systemNode.Add(new SystemNode(systemNode[i].pos - new Vector3(0, 0.5f, 0), prod, systemNode[i].maxOut));
 
             // Create surrogate edges
-            systemNode[i].AddDistanceEdge(new DistanceEdge(systemNode[j], 0f));
-            systemNode[j].AddDistanceEdge(new DistanceEdge(systemNode[i], 0f));
+            systemNode[i].AddDistanceEdge(new DistanceEdge(systemNode[j], 0.01f));
+            systemNode[j].AddDistanceEdge(new DistanceEdge(systemNode[i], 0.01f));
 
             // Set original production to zero
             for (int k = 0; k < systemNode[i].prod.Length; k++) systemNode[i].prod[k] = 0;
@@ -584,39 +611,8 @@ public static class LinearProgramming
         }
     }
 
-    public static float[,] BuildTableau(List<SystemNode> systemNode)
+    public static float[,] BuildMatrix(List<SystemNode> systemNode, int numNodes, int numEdges)
     {
-        /*
-         * From this INITIAL SIMPLEX TABLEAU, the BASIC VARIABLES are s1, s2, and s3, and the 
-         * NONBASIC VARIABLES (which have a value of zero) are x1 and x2. Hence from the two columns
-         * that are farthest to the right, we see that the current solution is
-         * x1 = 0,   x2 = 0,   s1 = 11,   s2 = 27,   s3 = 90.
-         * This solution is a basic feasible solution and is often written as
-         * (x1, x2, s1, s2, s3) = (0, 0, 11, 27, 90).
-         */
-
-        /*
-         * There is one objective function, an augmented constraint for each node, and a flow/capacity
-         * constraint for each edge.
-         */
-
-        // Find the number of nodes and edges
-        int numNodes = 0;
-        int numEdges = 0;
-        foreach (SystemNode n in systemNode)
-        {
-            numNodes++;
-            foreach (DistanceEdge d in n.distance)
-            {
-                numEdges++;
-            }
-        }
-
-        Debug.Log("Nodes and edges have been counted.");
-
-        Debug.Log("Number of nodes: " + numNodes);
-        Debug.Log("Number of edges: " + numEdges);
-
         // Collect edge data
         float[] edgeCost = new float[numEdges];
         int[] edgeSource = new int[numEdges];
@@ -640,20 +636,12 @@ public static class LinearProgramming
 
         Debug.Log("Edge data collected.");
 
-        /*
-         * Columns in the tableau will represent the flow along each edge, the slack variables for 
-         * each node constraint, the slack variables for each edge constraint, and the b column.
-         *
-         * Rows in the tableau will represent the node constraints, the edge constraints, and the 
-         * objective function.
-         */
-
-        // Initialise tableau        
+        // Initialise matrix
         int numRow = numNodes + numEdges + 1;
-        int numCol = numEdges + numNodes + numEdges + 1;
-        float[,] tableau = new float[numRow, numCol];
+        int numCol = numEdges + 1;
+        float[,] matrix = new float[numRow, numCol];
 
-        Debug.Log("Tableau initialised.");
+        Debug.Log("Augmented matrix initialised.");
 
         // Add node flow conservation values
         for (int r = 0; r < numNodes; r++)
@@ -663,27 +651,23 @@ public static class LinearProgramming
                 /*
                  * If the corresponding edge with index c flows out of node with index r, then assign
                  * +1. If it flows into node with index r, then assign -1. Otherwise, assign 0.
-                 * 
-                 * Then add the artificial slack variable.
                  */
-                
+
                 if (edgeSource[c] == r)
                 {
                     //Debug.Log("Edge " + c + " flows out of node " + r);
-                    tableau[r, c] = 1f;
+                    matrix[r, c] = 1f;
                 }
                 else if (edgeTarget[c] == r)
                 {
                     //Debug.Log("Edge " + c + " flows into node " + r);
-                    tableau[r, c] = -1f;
+                    matrix[r, c] = -1f;
                 }
                 else
                 {
                     //Debug.Log("Edge " + c + " does not interact with node " + r);
-                    tableau[r, c] = 0f;
+                    matrix[r, c] = 0f;
                 }
-
-                tableau[r, numEdges + r] = 1f;
             }
         }
 
@@ -694,13 +678,9 @@ public static class LinearProgramming
         {
             /*
              * Assign +1 to the column corrsponding to this edge, with index r - numNodes.
-             * 
-             * Then add the artificial slack variable.
              */
 
-            tableau[r, r - numNodes] = 1f;
-
-            tableau[r, r - numNodes + numNodes + numEdges] = 1f;
+            matrix[r, r - numNodes] = 1f;
         }
 
         Debug.Log("Edge capacity constraint values inserted.");
@@ -712,7 +692,7 @@ public static class LinearProgramming
              * Insert the cost of the edge corresponding to the column with index c.
              */
 
-            tableau[numRow - 1, c] = edgeCost[c];
+            matrix[numRow - 1, c] = edgeCost[c];
         }
 
         Debug.Log("Objective function values inserted.");
@@ -724,7 +704,7 @@ public static class LinearProgramming
              * Insert the production rate value for node with index r.
              */
 
-            tableau[r, numCol - 1] = systemNode[r].prod[0];
+            matrix[r, numCol - 1] = systemNode[r].prod[0];
         }
         for (int r = numNodes; r < numNodes + numEdges; r++)
         {
@@ -735,12 +715,12 @@ public static class LinearProgramming
              * If not, then the edge's capacity is infinite.
              */
 
-            tableau[r, numCol - 1] = systemNode[edgeSource[r - numNodes]].maxOut;
+            matrix[r, numCol - 1] = systemNode[edgeSource[r - numNodes]].maxOut;
         }
 
         Debug.Log("b-values have been inserted.");
 
-        // Return the tableau
-        return tableau;
+        // Return the matrix
+        return matrix;
     }
 }
