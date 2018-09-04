@@ -61,12 +61,11 @@ public static class LinearProgramming
         Debug.Log("Performing minimum-cost flow analysis.");
 
         // Take a copy of the network
-        List<SystemNode> copy = new List<SystemNode>();
-        foreach (SystemNode n in systemNode) copy.Add(n.TakeCopy());
+        //List<SystemNode> copy = new List<SystemNode>();
+        //foreach (SystemNode n in systemNode) copy.Add(n.TakeCopy());
 
         Debug.Log("Network copy taken.");
 
-        //Surrogate(copy);
         int nSurrogate = Surrogate(systemNode);
 
         Debug.Log(nSurrogate + " surrogate nodes inserted.");
@@ -104,22 +103,6 @@ public static class LinearProgramming
             flows[i] = rawResult[index];
         }
 
-        // Insert resource flow edges
-        //int nodeIndex = -1;
-        //int edgeIndex = -1;
-        //foreach (SystemNode n in systemNode)
-        //{
-        //    nodeIndex++;
-        //    foreach (DistanceEdge d in n.distance)
-        //    {
-        //        edgeIndex++;
-        //        if (flows[edgeIndex] > 0)
-        //        {
-        //            n.AddResourceEdge(new ResourceEdge(d.target, flows[edgeIndex]));
-        //        }
-        //    }
-        //}
-
         // Record resource flow edge data
         List<SystemNode> source = new List<SystemNode>();
         List<Node> target = new List<Node>();
@@ -146,6 +129,21 @@ public static class LinearProgramming
 
         // Build solution
         LinearProgrammingSolution solution = new LinearProgrammingSolution(source, target, magnitude);
+
+        // Destroy surrogate nodes
+        List<int> surrogateIndex = new List<int>();
+        for (int i = 0; i < systemNode.Count; i++)
+        {
+            if (systemNode[i].surrogate)
+            {
+                surrogateIndex.Add(i);
+            }
+        }
+        //for (int i = 0; i < surrogateIndex.Count; i++)
+        //{
+        //    int j = surrogateIndex.Count - 1 - i;
+        //    systemNode.RemoveAt(j);
+        //}
 
         // Return the solution
         return solution;
