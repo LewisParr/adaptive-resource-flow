@@ -86,10 +86,23 @@ public class Problem04Controller : MonoBehaviour
 			Gizmos.color = Color.white;
 			foreach (SystemNode n in node)
 			{
-				foreach (DistanceEdge d in n.distance)
-				{
-					Gizmos.DrawLine(n.pos, d.target.pos);
-				}
+                if (n.distance != null)
+                {
+                    Gizmos.color = Color.white;
+                    foreach (DistanceEdge d in n.distance)
+                    {
+                        //Gizmos.DrawLine(n.pos, d.target.pos);
+                    }
+                }
+
+                if (n.resource != null)
+                {
+                    Gizmos.color = Color.yellow;
+                    foreach (ResourceEdge r in n.resource)
+                    {
+                        Gizmos.DrawLine(n.pos, r.target.pos);
+                    }
+                }
 			}
 		}
 	}

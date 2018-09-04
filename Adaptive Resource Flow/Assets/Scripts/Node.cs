@@ -7,6 +7,7 @@ public class Node
 	public Vector3 pos;
 
 	public List<DistanceEdge> distance;
+    public List<ResourceEdge> resource;
 
 	public Node(Vector3 pos)
 	{
@@ -19,6 +20,13 @@ public class Node
 
 		this.distance.Add(distance);
 	}
+
+    public void AddResourceEdge(ResourceEdge resource)
+    {
+        if (this.resource == null) this.resource = new List<ResourceEdge>();
+
+        this.resource.Add(resource);
+    }
 }
 
 public class SystemNode : Node

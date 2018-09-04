@@ -67,9 +67,9 @@ public static class LinearProgramming
         Debug.Log("Network copy taken.");
 
         //Surrogate(copy);
-        Surrogate(systemNode);
+        int nSurrogate = Surrogate(systemNode);
 
-        Debug.Log("Surrogate nodes inserted.");
+        Debug.Log(nSurrogate + " surrogate nodes inserted.");
 
         // Count the number of nodes and edges
         int numNodes = 0;
@@ -102,6 +102,22 @@ public static class LinearProgramming
         {
             int index = rawResult.Length - numEdges - 1 + i;
             flows[i] = rawResult[index];
+        }
+
+        // Insert resource flow edges
+        int nodeIndex = -1;
+        int edgeIndex = -1;
+        foreach (SystemNode n in systemNode)
+        {
+            nodeIndex++;
+            foreach (DistanceEdge d in n.distance)
+            {
+                edgeIndex++;
+                if (flows[edgeIndex] > 0)
+                {
+                    n.AddResourceEdge(new ResourceEdge(d.target, flows[edgeIndex]));
+                }
+            }
         }
 
         // Build solution
@@ -251,6 +267,7 @@ public static class LinearProgramming
 
             // Output nothing
             float[] output = new float[0];        // TODO TODO TODO
+            Debug.LogError("NOT IMPLEMENTED");
             return output;
         }
         else
@@ -580,7 +597,7 @@ public static class LinearProgramming
         return transpose;
     }
 
-    private static void Surrogate(List<SystemNode> systemNode)
+    private static int Surrogate(List<SystemNode> systemNode)
     {
         /*
          * For each system node, add a surrogate node with edges
@@ -609,6 +626,8 @@ public static class LinearProgramming
             // Set original max outflow to infinite
             systemNode[i].maxOut = Mathf.Infinity;
         }
+        int nSurrogate = systemNode.Count - nOriginal;
+        return nSurrogate;
     }
 
     public static float[,] BuildMatrix(List<SystemNode> systemNode, int numNodes, int numEdges)
