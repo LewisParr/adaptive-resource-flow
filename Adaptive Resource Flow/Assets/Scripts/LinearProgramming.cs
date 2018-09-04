@@ -105,6 +105,25 @@ public static class LinearProgramming
         }
 
         // Insert resource flow edges
+        //int nodeIndex = -1;
+        //int edgeIndex = -1;
+        //foreach (SystemNode n in systemNode)
+        //{
+        //    nodeIndex++;
+        //    foreach (DistanceEdge d in n.distance)
+        //    {
+        //        edgeIndex++;
+        //        if (flows[edgeIndex] > 0)
+        //        {
+        //            n.AddResourceEdge(new ResourceEdge(d.target, flows[edgeIndex]));
+        //        }
+        //    }
+        //}
+
+        // Record resource flow edge data
+        List<SystemNode> source = new List<SystemNode>();
+        List<Node> target = new List<Node>();
+        List<float> magnitude = new List<float>();
         int nodeIndex = -1;
         int edgeIndex = -1;
         foreach (SystemNode n in systemNode)
@@ -115,13 +134,18 @@ public static class LinearProgramming
                 edgeIndex++;
                 if (flows[edgeIndex] > 0)
                 {
-                    n.AddResourceEdge(new ResourceEdge(d.target, flows[edgeIndex]));
+                    if (!n.surrogate && !d.target.surrogate)
+                    {
+                        source.Add(n);
+                        target.Add(d.target);
+                        magnitude.Add(flows[edgeIndex]);
+                    }
                 }
             }
         }
 
         // Build solution
-        LinearProgrammingSolution solution = new LinearProgrammingSolution(flows, cost);
+        LinearProgrammingSolution solution = new LinearProgrammingSolution(source, target, magnitude);
 
         // Return the solution
         return solution;
@@ -614,7 +638,7 @@ public static class LinearProgramming
             // Create surrogate node
             float[] prod = new float[1];
             prod[0] = systemNode[i].prod[0];
-            systemNode.Add(new SystemNode(systemNode[i].pos - new Vector3(0, 0.5f, 0), prod, systemNode[i].maxOut));
+            systemNode.Add(new SystemNode(systemNode[i].pos - new Vector3(0, 0.5f, 0), prod, systemNode[i].maxOut, true));
 
             // Create surrogate edges
             systemNode[i].AddDistanceEdge(new DistanceEdge(systemNode[j], 0.01f));
@@ -746,12 +770,14 @@ public static class LinearProgramming
 
 public class LinearProgrammingSolution
 {
-    public float[] flows;
-    public float cost;
+    public List<SystemNode> source;
+    public List<Node> target;
+    public List<float> magnitude;
 
-    public LinearProgrammingSolution(float[] flows, float cost)
+    public LinearProgrammingSolution(List<SystemNode> source, List<Node> target, List<float> magnitude)
     {
-        this.flows = flows;
-        this.cost = cost;
+        this.source = source;
+        this.target = target;
+        this.magnitude = magnitude;
     }
 }

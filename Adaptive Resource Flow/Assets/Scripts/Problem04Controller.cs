@@ -35,15 +35,6 @@ public class Problem04Controller : MonoBehaviour
 		}
 
         LinearProgrammingSolution solution = LinearProgramming.MinimumCostFlow(node);
-
-        Debug.Log("Minimum cost: " + solution.cost);
-        string flows = "";
-        foreach (float f in solution.flows)
-        {
-            flows += f;
-            flows += ", ";
-        }
-        Debug.Log("Flows: " + flows);
 	}
 
 	void Update()

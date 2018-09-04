@@ -5,13 +5,15 @@ using UnityEngine;
 public class Node
 {
 	public Vector3 pos;
+    public bool surrogate;
 
 	public List<DistanceEdge> distance;
     public List<ResourceEdge> resource;
 
-	public Node(Vector3 pos)
+	public Node(Vector3 pos, bool surrogate = false)
 	{
 		this.pos = pos;
+        this.surrogate = surrogate;
 	}
 
 	public void AddDistanceEdge(DistanceEdge distance)
@@ -34,7 +36,7 @@ public class SystemNode : Node
     public float[] prod;
     public float maxOut;
 
-    public SystemNode(Vector3 pos, float[] prod, float maxOut) : base(pos)
+    public SystemNode(Vector3 pos, float[] prod, float maxOut, bool surrogate = false) : base(pos, surrogate)
     {
         this.pos = pos;
         this.prod = prod;
