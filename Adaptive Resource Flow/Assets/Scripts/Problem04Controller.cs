@@ -35,6 +35,12 @@ public class Problem04Controller : MonoBehaviour
 		}
 
         LinearProgrammingSolution solution = LinearProgramming.MinimumCostFlow(node);
+
+        // Interpret analysis results
+        for (int i = 0; i < solution.source.Count; i++)
+        {
+            solution.source[i].AddResourceEdge(new ResourceEdge(solution.target[i], solution.magnitude[i]));
+        }
 	}
 
 	void Update()
