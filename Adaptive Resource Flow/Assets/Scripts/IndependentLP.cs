@@ -6,7 +6,18 @@ public static class IndependentLP
 {
     public static void MinimumCostFlow(List<SystemNode> originalNodes)
     {
+        float[][] top = new float[3][];
+        top[0] = new float[2];
+        top[0][0] = 0.4f;
+
         Debug.Log("Performing minimum-cost flow analysis.");
+
+        // Collect node production data
+        float[][] prod = CollectProduction(originalNodes);
+
+
+
+
 
         // Take a copy of the network
         //List<SystemNode> node = new List<SystemNode>();
@@ -33,20 +44,22 @@ public static class IndependentLP
         Debug.Log("Nodes: " + numNodes + "; Edges: " + numEdges);
     }
 
+    private static float[][] CollectProduction(List<SystemNode> originalNodes)
+    {
+        float[][] prod = new float[originalNodes.Count][];
+        for (int n = 0; n < originalNodes.Count; n++)
+        {
+            prod[n] = new float[originalNodes[n].prod.Length];
+            for (int p = 0; p < originalNodes[n].prod.Length; p++) prod[n][p] = originalNodes[n].prod[p];
+        }
+        return prod;
+    }
+
     private static List<SystemNode> CopyNetwork(List<SystemNode> originalNodes)
     {
         // Count nodes
         int numNodes = 0;
         foreach (SystemNode n in originalNodes) numNodes++;
-
-        // Collect production data
-        List<float[]> nodeProd = new List<float[]>();
-        foreach (SystemNode n in originalNodes)
-        {
-            float[] prod = new float[n.prod.Length];
-            for (int p = 0; p < prod.Length; p++) prod[p] = n.prod[p];
-            nodeProd.Add(prod);
-        }
 
         // Collect max outflow data
         float[] nodeMaxOut = new float[numNodes];
