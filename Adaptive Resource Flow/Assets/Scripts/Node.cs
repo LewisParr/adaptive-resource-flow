@@ -45,7 +45,16 @@ public class SystemNode : Node
 
     public SystemNode TakeCopy()
     {
-        SystemNode copy = new SystemNode(this.pos, this.prod, this.maxOut);
+        float[] newProd = new float[this.prod.Length];
+        for (int p = 0; p < this.prod.Length; p++) newProd[p] = this.prod[p];
+
+        SystemNode copy = new SystemNode(this.pos, newProd, this.maxOut);
+
+        foreach (DistanceEdge d in this.distance)
+        {
+
+        }
+
         return copy;
     }
 }
