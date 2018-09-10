@@ -15,33 +15,20 @@ public static class IndependentLP
         // Collect node production data
         float[][] prod = CollectProduction(originalNodes);
 
+        Debug.Log("Production data collected.");
 
+        // Collect node max outflow data
+        float[] maxout = CollectMaxOutflow(originalNodes);
 
+        Debug.Log("Max outflow data collected.");
 
+        // Build distance matrix
+        float[,] distance = BuildDistanceMatrix(originalNodes);
 
-        // Take a copy of the network
-        //List<SystemNode> node = new List<SystemNode>();
-        //foreach (SystemNode n in originalNodes) node.Add(n.TakeCopy());
-
-        List<SystemNode> node = CopyNetwork(originalNodes);
-
-        Debug.Log("Network copy taken.");
+        Debug.Log("Distance matrix built.");
 
         // Insert surrogate nodes
-        List<Vector2Int> nodePair = Surrogate(node);
-        int nSurrogate = nodePair.Count;
-
-        Debug.Log(nSurrogate + " surrogate nodes inserted.");
-
-        // Count nodes and edges
-        int numNodes = 0; int numEdges = 0;
-        foreach (SystemNode n in node)
-        {
-            numNodes++;
-            foreach (DistanceEdge d in n.distance) numEdges++;
-        }
-
-        Debug.Log("Nodes: " + numNodes + "; Edges: " + numEdges);
+        Surrogate();
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -55,32 +42,29 @@ public static class IndependentLP
         return prod;
     }
 
-    private static List<SystemNode> CopyNetwork(List<SystemNode> originalNodes)
+    private static float[] CollectMaxOutflow(List<SystemNode> originalNodes)
     {
-        // Count nodes
-        int numNodes = 0;
-        foreach (SystemNode n in originalNodes) numNodes++;
+        float[] maxout = new float[originalNodes.Count];
+        for (int n = 0; n < originalNodes.Count; n++) maxout[n] = originalNodes[n].maxOut;
+        return maxout;
+    }
 
-        // Collect max outflow data
-        float[] nodeMaxOut = new float[numNodes];
-        for (int n = 0; n < numNodes; n++)
-        {
-            nodeMaxOut[n] = originalNodes[n].maxOut;
-        }
-
-        // Create distance matrix
-        float[,] distance = new float[numNodes, numNodes]; // Matrix of distances between all nodes
-        for (int currentNode = 0; currentNode < numNodes; currentNode++)
+    private static float[,] BuildDistanceMatrix(List<SystemNode> originalNodes)
+    {
+        float[,] distance = new float[originalNodes.Count, originalNodes.Count];
+        for (int currentNode = 0; currentNode < originalNodes.Count; currentNode++)
         {
             foreach (DistanceEdge d in originalNodes[currentNode].distance)
             {
-                int targetNode = -1;
-                int candidateNode = -1;
+                int targetNode = -1; int candidateNode = -1;
                 while (targetNode == -1)
                 {
                     candidateNode++;
-                    if (d.target == originalNodes[candidateNode]) targetNode = candidateNode;
-                    if (candidateNode == numNodes)
+                    if (d.target == originalNodes[candidateNode])
+                    {
+                        targetNode = candidateNode;
+                    }
+                    else if (candidateNode == originalNodes.Count)
                     {
                         Debug.LogError("Target node not found.");
                         Application.Quit();
@@ -89,42 +73,11 @@ public static class IndependentLP
                 distance[currentNode, targetNode] = d.distance;
             }
         }
-
-        return originalNodes;
+        return distance;
     }
 
-    private static List<Vector2Int> Surrogate(List<SystemNode> node)
+    private static void Surrogate()
     {
-        int nOriginal = node.Count;
-        List<Vector2Int> nodePair = new List<Vector2Int>();
-        
-        for (int i = 0; i < nOriginal; i++)
-        {
-            int j = node.Count;
 
-            // Copy original node's production
-            float[] prod = new float[node[i].prod.Length];
-            for (int p = 0; p < node[i].prod.Length; p++) prod[p] = node[i].prod[p];
-
-            Vector3 tempOffset = new Vector3(0, 0.5f, 0);
-
-            // Create surrogate node
-            node.Add(new SystemNode(node[i].pos - tempOffset, prod, node[i].maxOut, true));
-
-            // Create surrogate edges
-            node[i].AddDistanceEdge(new DistanceEdge(node[j], 0.01f));
-            node[j].AddDistanceEdge(new DistanceEdge(node[i], 0.01f));
-
-            // Set original production to zero
-            for (int p = 0; p < node[i].prod.Length; p++) node[i].prod[p] = 0f;
-
-            // Set original max outflow to infinity
-            node[i].maxOut = Mathf.Infinity;
-
-            // Record original-surrogate node pairs
-            nodePair.Add(new Vector2Int(i, j)); // (original node index, surrogate node index)
-        }
-
-        return nodePair;
     }
 }
