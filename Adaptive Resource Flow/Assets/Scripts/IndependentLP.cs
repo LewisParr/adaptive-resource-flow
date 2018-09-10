@@ -6,10 +6,6 @@ public static class IndependentLP
 {
     public static void MinimumCostFlow(List<SystemNode> originalNodes)
     {
-        float[][] top = new float[3][];
-        top[0] = new float[2];
-        top[0][0] = 0.4f;
-
         Debug.Log("Performing minimum-cost flow analysis.");
 
         // Collect node production data
@@ -27,8 +23,56 @@ public static class IndependentLP
 
         Debug.Log("Distance matrix built.");
 
-        // Insert surrogate nodes
-        Surrogate();
+        // Insert surrogate node production
+        prod = SurrogateProduction(prod);
+
+        Debug.Log("Surrogate production inserted.");
+
+        // Build capacity matrix
+        float[,] capacity = BuildCapacityMatrix(maxout);
+
+        Debug.Log("Capacity matrix built.");
+
+        // Insert surrogate distances
+        distance = SurrogateDistance(distance);
+
+        Debug.Log("Surrogate distances inserted.");
+
+        //Debug.Log("----- PRODUCTION -----");
+        //for (int n = 0; n < prod.Length; n++)
+        //{
+        //    string s = "";
+        //    for (int p = 0; p < prod[n].Length; p++)
+        //    {
+        //        s += prod[n][p];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
+
+        //Debug.Log("----- CAPACITY -----");
+        //for (int a = 0; a < capacity.GetLength(1); a++)
+        //{
+        //    string s = "";
+        //    for (int b = 0; b < capacity.GetLength(0); b++)
+        //    {
+        //        s += capacity[a, b];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
+
+        //Debug.Log("----- DISTANCE -----");
+        //for (int a = 0; a < distance.GetLength(1); a++)
+        //{
+        //    string s = "";
+        //    for (int b = 0; b < distance.GetLength(0); b++)
+        //    {
+        //        s += distance[a, b];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -76,8 +120,62 @@ public static class IndependentLP
         return distance;
     }
 
-    private static void Surrogate()
+    private static float[][] SurrogateProduction(float[][] prod)
     {
+        int _N = prod.Length;
+        int _2N = _N * 2;
 
+        float[][] newProd = new float[_2N][];
+
+        for (int n = 0; n < _N; n++)
+        {
+            newProd[n] = new float[prod[n].Length];
+            newProd[n + _N] = prod[n];
+        }
+
+        return newProd;
+    }
+
+    private static float[,] BuildCapacityMatrix(float[] maxout)
+    {
+        int _N = maxout.Length;
+        int _2N = _N * 2;
+
+        float[,] capacity = new float[_2N, _2N];
+
+        for (int n = 0; n < _N; n++)
+        {
+            capacity[n + _N, n] = maxout[n];
+        }
+
+        for (int a = 0; a < _2N; a++)
+            for (int b = 0; b < _2N; b++)
+                if (capacity[a, b] == 0) capacity[a, b] = Mathf.Infinity;
+
+        return capacity;
+    }
+
+    private static float[,] SurrogateDistance(float[,] distance)
+    {
+        int _N = distance.GetLength(0);
+        int _2N = _N * 2;
+
+        float[,] newDistance = new float[_2N, _2N];
+
+        for (int a = 0; a < _N; a++)
+            for (int b = 0; b < _N; b++)
+                newDistance[a, b] = distance[a, b];
+
+        for (int a = 0; a < _N; a++)
+        {
+            newDistance[a, a + _N] = 0.01f;
+            newDistance[a + _N, a] = 0.01f;
+        }
+
+        for (int a = 0; a < _2N; a++)
+            for (int b = 0; b < _2N; b++)
+                if (newDistance[a, b] == 0) newDistance[a, b] = Mathf.Infinity;
+
+        return newDistance;
     }
 }
