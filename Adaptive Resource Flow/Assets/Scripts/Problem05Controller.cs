@@ -22,18 +22,44 @@ public class Problem05Controller : MonoBehaviour
         flowsCalculated = false;
 
         node = new List<SystemNode>();
+
+        //float[] prod;
+        //
+        //prod = new float[1]; prod[0] = 0f;
+        //node.Add(new SystemNode(new Vector3(0, 0, 0), prod, 1f));
+        //prod = new float[1]; prod[0] = 1f;
+        //node.Add(new SystemNode(new Vector3(3, 0, 3), prod, 1f));
+        //prod = new float[1]; prod[0] = 0f;
+        //node.Add(new SystemNode(new Vector3(2, 0, 1), prod, 1f));
+        //prod = new float[1]; prod[0] = -1f;
+        //node.Add(new SystemNode(new Vector3(0, 0, 2), prod, 1f));
+        //prod = new float[1]; prod[0] = 0f;
+        //node.Add(new SystemNode(new Vector3(2, 0, 4), prod, 1f));
+        //
+        //for (int a = 0; a < node.Count; a++)
+        //{
+        //    for (int b = 0; b < node.Count; b++)
+        //    {
+        //        if (b != a)
+        //        {
+        //            node[a].AddDistanceEdge(new DistanceEdge(node[b], (node[a].pos - node[b].pos).magnitude));
+        //        }
+        //    }
+        //}
+        //
+        //IndependentLP.MinimumCostFlow(node);
     }
 
     private void Update()
     {
         frameCounter++;
-
+        
         if (!allNodesGenerated)
         {
             if (frameCounter % 10 == 0)
             {
                 GenerateNode();
-
+        
                 if (node.Count == numNodes)
                 {
                     allNodesGenerated = true;
@@ -46,7 +72,7 @@ public class Problem05Controller : MonoBehaviour
             if (!flowsCalculated)
             {
                 IndependentLP.MinimumCostFlow(node);
-
+        
                 flowsCalculated = true;
             }
         }

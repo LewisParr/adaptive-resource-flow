@@ -85,24 +85,43 @@ public static class IndependentLP
         Debug.Log("Augmented matrix built.");
 
         #region PrintAugmentedMatrix
-        Debug.Log("----- INIT AUG MAT -----");
-        for (int a = 0; a < augmat.GetLength(0); a++)
-        {
-            string s = "";
-            for (int b = 0; b < augmat.GetLength(1); b++)
-            {
-                s += augmat[a, b];
-                s += "; ";
-            }
-            Debug.Log(s);
-        }
+        //Debug.Log("----- INIT AUG MAT -----");
+        //for (int a = 0; a < augmat.GetLength(0); a++)
+        //{
+        //    string s = "";
+        //    for (int b = 0; b < augmat.GetLength(1); b++)
+        //    {
+        //        s += augmat[a, b];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
         #endregion
 
         // Process the minimisation problem
         float[] output = Minimise(augmat);
 
+        Debug.Log("Minimisation operation performed.");
+
+        #region PrintOutput
+        Debug.Log("----- RAW OUTPUT -----");
+        string s = "";
+        foreach (float o in output)
+        {
+            s += o;
+            s += "; ";
+        }
+        Debug.Log(s);
+        #endregion
+
         // Interpret result
-        // ...
+        int numNode = distance.GetLength(0);
+        int numEdge = ((numNode / 2) * ((numNode / 2) - 1)) + numNode;
+        for (int e = 0; e < numEdge; e++)
+        {
+            int index = output.Length - numEdge - 1 + e;
+            Debug.Log("Edge " + e + " has flow " + output[index]);
+        }
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
