@@ -249,15 +249,14 @@ public static class IndependentLP
             {
                 if (distance[n, _n] != Mathf.Infinity)
                 {
-                    Debug.Log("Node " + n + " to node " + _n + ", edge index " + edgeind[n, _n]);
-
-
-
-
-
+                    augmat[n, edgeind[n, _n]] = 1;
+                    augmat[n, edgeind[_n, n]] = -1;
                 }
             }
         }
+
+        // Add edge capacity constraint values
+
 
         return augmat;
     }
