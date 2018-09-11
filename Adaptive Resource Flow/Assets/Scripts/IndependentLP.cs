@@ -261,6 +261,28 @@ public static class IndependentLP
             augmat[e + numNode, e] = 1;
         }
 
+        // Add objective function values
+        for (int e = 0; e < numEdge; e++)
+        {
+            augmat[numRow - 1, e] = EdgeCostByIndex(edgeind, distance, e);
+        }
+
         return augmat;
+    }
+
+    private static float EdgeCostByIndex(int[,] edgeind, float[,] distance, int i)
+    {
+        for (int a = 0; a < edgeind.GetLength(0); a++)
+        {
+            for (int b = 0; b < edgeind.GetLength(1); b++)
+            {
+                if (edgeind[a, b] == i)
+                {
+                    return distance[a, b];
+                }
+            }
+        }
+        Debug.LogError("Edge index not found.");
+        return Mathf.Infinity;
     }
 }
