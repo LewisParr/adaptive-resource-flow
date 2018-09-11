@@ -81,6 +81,30 @@ public static class IndependentLP
 
         // Build augmented matrix
         float[,] augmat = BuildAugmentedMatrix(distance, edgeind);
+
+        Debug.Log("----- EDGE INDEXES -----");
+        for (int a = 0; a < edgeind.GetLength(0); a++)
+        {
+            string s = "";
+            for (int b = 0; b < edgeind.GetLength(1); b++)
+            {
+                s += edgeind[a, b];
+                s += "; ";
+            }
+            Debug.Log(s);
+        }
+
+        Debug.Log("----- INIT AUG MAT -----");
+        for (int a = 0; a < augmat.GetLength(0); a++)
+        {
+            string s = "";
+            for (int b = 0; b < augmat.GetLength(1); b++)
+            {
+                s += augmat[a, b];
+                s += "; ";
+            }
+            Debug.Log(s);
+        }
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -225,8 +249,11 @@ public static class IndependentLP
             {
                 if (distance[n, _n] != Mathf.Infinity)
                 {
-                    int iRow = n;
-                    int iCol = edgeind[n, _n];
+                    Debug.Log("Node " + n + " to node " + _n + ", edge index " + edgeind[n, _n]);
+
+
+
+
 
                 }
             }
