@@ -76,8 +76,11 @@ public static class IndependentLP
         //}
         #endregion
 
+        // Build edge index matrix
+        int[,] edgeind = BuildEdgeIndexMatrix(distance);
+
         // Build augmented matrix
-        float[,] augmat = BuildAugmentedMatrix(distance);
+        float[,] augmat = BuildAugmentedMatrix(distance, edgeind);
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -184,13 +187,51 @@ public static class IndependentLP
         return newDistance;
     }
 
-    private static float[,] BuildAugmentedMatrix(float[,] distance)
+    private static int[,] BuildEdgeIndexMatrix(float[,] distance)
+    {
+        int i = -1;
+        int[,] edgeind = new int[distance.GetLength(0), distance.GetLength(1)];
+        for (int a = 0; a < distance.GetLength(0); a++)
+        {
+            for (int b = 0; b < distance.GetLength(1); b++)
+            {
+                if (distance[a, b] != Mathf.Infinity)
+                {
+                    i++;
+                    edgeind[a, b] = i;
+                }
+                else
+                {
+                    edgeind[a, b] = -1;
+                }
+            }
+        }
+        return edgeind;
+    }
+
+    private static float[,] BuildAugmentedMatrix(float[,] distance, int[,] edgeind)
     {
         // Initialise matrix
-        int numNodes = distance.GetLength(0);
-        int numEdges = ((numNodes / 2) * ((numNodes / 2) - 1)) + numNodes;
-        Debug.Log(numEdges);
+        int numNode = distance.GetLength(0);
+        int numEdge = ((numNode / 2) * ((numNode / 2) - 1)) + numNode;
+        int numRow = numNode + numEdge + 1;
+        int numCol = numEdge + 1;
+        float[,] augmat = new float[numRow, numCol];
 
-        return null;
+        // Add node flow conservation values
+        for (int n = 0; n < numNode; n++) // n <- current node index
+        {
+            for (int _n = 0; _n < numNode; _n++) // _n <- target node index
+            {
+                if (distance[n, _n] != Mathf.Infinity)
+                {
+                    int iRow = n;
+                    int iCol = edgeind[n, _n];
+
+                }
+            }
+        }
+
+        return augmat;
     }
 }
