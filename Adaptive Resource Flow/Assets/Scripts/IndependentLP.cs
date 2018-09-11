@@ -38,6 +38,7 @@ public static class IndependentLP
 
         Debug.Log("Surrogate distances inserted.");
 
+        #region PrintAssembledData
         //Debug.Log("----- PRODUCTION -----");
         //for (int n = 0; n < prod.Length; n++)
         //{
@@ -73,6 +74,10 @@ public static class IndependentLP
         //    }
         //    Debug.Log(s);
         //}
+        #endregion
+
+        // Build augmented matrix
+        float[,] augmat = BuildAugmentedMatrix(distance);
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -177,5 +182,15 @@ public static class IndependentLP
                 if (newDistance[a, b] == 0) newDistance[a, b] = Mathf.Infinity;
 
         return newDistance;
+    }
+
+    private static float[,] BuildAugmentedMatrix(float[,] distance)
+    {
+        // Initialise matrix
+        int numNodes = distance.GetLength(0);
+        int numEdges = ((numNodes / 2) * ((numNodes / 2) - 1)) + numNodes;
+        Debug.Log(numEdges);
+
+        return null;
     }
 }
