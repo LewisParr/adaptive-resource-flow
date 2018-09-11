@@ -80,20 +80,11 @@ public static class IndependentLP
         int[,] edgeind = BuildEdgeIndexMatrix(distance);
 
         // Build augmented matrix
-        float[,] augmat = BuildAugmentedMatrix(distance, edgeind);
+        float[,] augmat = BuildAugmentedMatrix(distance, edgeind, prod, capacity);
 
-        Debug.Log("----- EDGE INDEXES -----");
-        for (int a = 0; a < edgeind.GetLength(0); a++)
-        {
-            string s = "";
-            for (int b = 0; b < edgeind.GetLength(1); b++)
-            {
-                s += edgeind[a, b];
-                s += "; ";
-            }
-            Debug.Log(s);
-        }
+        Debug.Log("Augmented matrix built.");
 
+        #region PrintAugmentedMatrix
         Debug.Log("----- INIT AUG MAT -----");
         for (int a = 0; a < augmat.GetLength(0); a++)
         {
@@ -105,6 +96,13 @@ public static class IndependentLP
             }
             Debug.Log(s);
         }
+        #endregion
+
+        // Process the minimisation problem
+        float[] output = Minimise(augmat);
+
+        // Interpret result
+        // ...
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -233,7 +231,7 @@ public static class IndependentLP
         return edgeind;
     }
 
-    private static float[,] BuildAugmentedMatrix(float[,] distance, int[,] edgeind)
+    private static float[,] BuildAugmentedMatrix(float[,] distance, int[,] edgeind, float[][] prod, float[,] capacity)
     {
         // Initialise matrix
         int numNode = distance.GetLength(0);
@@ -264,13 +262,25 @@ public static class IndependentLP
         // Add objective function values
         for (int e = 0; e < numEdge; e++)
         {
-            augmat[numRow - 1, e] = EdgeCostByIndex(edgeind, distance, e);
+            augmat[numRow - 1, e] = EdgePropertyByIndex(edgeind, distance, e);
         }
 
+        // Add b-values
+        int p = 0;
+        for (int n = 0; n < numNode; n++)
+        {
+            augmat[n, numCol - 1] = prod[n][p];
+        }
+        for (int e = 0; e < numEdge; e++)
+        {
+            augmat[e + numNode, numCol - 1] = EdgePropertyByIndex(edgeind, capacity, e);
+        }
+
+        // Return the completed matrix
         return augmat;
     }
 
-    private static float EdgeCostByIndex(int[,] edgeind, float[,] distance, int i)
+    private static float EdgePropertyByIndex(int[,] edgeind, float[,] property, int i)
     {
         for (int a = 0; a < edgeind.GetLength(0); a++)
         {
@@ -278,11 +288,169 @@ public static class IndependentLP
             {
                 if (edgeind[a, b] == i)
                 {
-                    return distance[a, b];
+                    return property[a, b];
                 }
             }
         }
         Debug.LogError("Edge index not found.");
         return Mathf.Infinity;
+    }
+
+    private static float[] Minimise(float[,] augmat)
+    {
+        // Form the transpose of the augmented matrix
+        float[,] _augmat = Transpose(augmat);
+
+        // Form the dual maximisation problem
+        float[,] tableau = InsertSlackVariables(_augmat);
+
+        // Process the maximisation problem
+        float[] output = Maximise(tableau, true);
+
+        // Return the result
+        return output;
+    }
+
+    private static float[,] Transpose(float[,] augmat)
+    {
+        int numRow = augmat.GetLength(1);
+        int numCol = augmat.GetLength(0);
+        float[,] transpose = new float[numRow, numCol];
+        for (int r = 0; r < numRow; r++)
+            for (int c = 0; c < numCol; c++)
+                transpose[r, c] = augmat[c, r];
+        return transpose;
+    }
+
+    private static float[,] InsertSlackVariables(float[,] augmat)
+    {
+        int numRow = augmat.GetLength(0);
+        int numCol = augmat.GetLength(1) + (numRow - 1);
+        float[,] tableau = new float[numRow, numCol];
+
+        // Insert matrix values (except b-values)
+        for (int r = 0; r < numRow; r++)
+            for (int c = 0; c < augmat.GetLength(1) - 1; c++)
+                tableau[r, c] = augmat[r, c];
+
+        // Insert b-values
+        for (int r = 0; r < numRow; r++)
+            tableau[r, numCol - 1] = augmat[r, augmat.GetLength(1) - 1];
+
+        // Insert slack values
+        for (int r = 0; r < numRow - 1; r++)
+            tableau[r, r + augmat.GetLength(1) - 1] = 1f;
+
+        // Return the completed tableau
+        return tableau;
+    }
+
+    private static float[] Maximise(float[,] tableau, bool dual = false)
+    {
+        // Run the simplex method
+        tableau = SimplexMethod(tableau);
+
+        if (!dual)
+        {
+            // Read results normally
+            Debug.LogError("NOT IMPLEMENTED");
+            return null;
+        }
+        else
+        {
+            // Return the bottom row
+            float[] output = new float[tableau.GetLength(1)];
+            for (int c = 0; c < tableau.GetLength(1); c++)
+                output[c] = tableau[tableau.GetLength(0) - 1, c];
+            return output;
+        }
+    }
+
+    private static float[,] SimplexMethod(float[,] tableau)
+    {
+        bool terminate = false;
+        while (!terminate)
+        {
+            // Locate the most negative entry in the bottom row
+            int enteringColumn = SelectEntering(tableau);
+
+            if (enteringColumn != -1)
+            {
+                // Locate the smallest nonnegative ratio
+                int departingRow = SelectDeparting(tableau, enteringColumn);
+
+                if (departingRow != -1)
+                {
+                    // Set pivot to 1 all others to zero
+                    tableau = Pivot(tableau, enteringColumn, departingRow);
+                }
+                else terminate = true;
+            }
+            else terminate = true;
+        }
+        return tableau;
+    }
+
+    private static int SelectEntering(float[,] tableau)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+        float minVal = float.MaxValue;
+        int enteringColumn = 0;
+        for (int c = 0; c < numCol; c++)
+            if (tableau[numRow - 1, c] < minVal)
+            {
+                minVal = tableau[numRow - 1, c];
+                enteringColumn = c;
+            }
+        if (!(minVal < 0)) return -1;
+        else
+        {
+            if (minVal == float.MaxValue) return -1;
+            else return enteringColumn;
+        }
+    }
+
+    private static int SelectDeparting(float[,] tableau, int enteringColumn)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+        float minRatio = float.MaxValue;
+        int departingRow = 0;
+        for (int r = 0; r < numRow - 1; r++)
+        {
+            float ratio = tableau[r, numCol - 1] / tableau[r, enteringColumn];
+            if (!(ratio < 0))
+                if (ratio < minRatio)
+                {
+                    minRatio = ratio;
+                    departingRow = r;
+                }
+        }
+        if (minRatio == float.MaxValue) return -1;
+        else return departingRow;
+    }
+
+    private static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+
+        // Scale departing row so that pivot value is 1
+        float scaleValue = tableau[departingRow, enteringColumn];
+        for (int c = 0; c < numCol; c++)
+            tableau[departingRow, c] = tableau[departingRow, c] / scaleValue;
+
+        // Set other values in entering column to 0
+        for (int r = 0; r < numRow; r++)
+            if (r != departingRow)
+            {
+                float coefficient = -tableau[r, enteringColumn];
+                for (int c = 0; c < numCol; c++)
+                    tableau[r, c] = (coefficient * tableau[departingRow, c]) + tableau[r, c];
+            }
+
+        // Return the new tableau
+        return tableau;
     }
 }
