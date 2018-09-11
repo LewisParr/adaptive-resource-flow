@@ -256,7 +256,10 @@ public static class IndependentLP
         }
 
         // Add edge capacity constraint values
-
+        for (int e = 0; e < numEdge; e++)
+        {
+            augmat[e + numNode, e] = 1;
+        }
 
         return augmat;
     }
