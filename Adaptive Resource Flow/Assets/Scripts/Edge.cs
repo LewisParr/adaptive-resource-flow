@@ -26,10 +26,12 @@ public class DistanceEdge : Edge
 public class ResourceEdge : Edge
 {
     public float magnitude;
+    public int resource;
 
-    public ResourceEdge(Node target, float magnitude)
+    public ResourceEdge(Node target, float magnitude, int resource = 0)
     {
         this.target = target;
         this.magnitude = magnitude;
+        this.resource = resource;
     }
 }

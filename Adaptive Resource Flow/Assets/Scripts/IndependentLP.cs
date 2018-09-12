@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class IndependentLP
 {
-    public static void MinimumCostFlow(List<SystemNode> originalNodes)
+    public static List<FlowData> MinimumCostFlow(List<SystemNode> originalNodes)
     {
         Debug.Log("Performing minimum-cost flow analysis.");
 
@@ -104,24 +104,35 @@ public static class IndependentLP
         Debug.Log("Minimisation operation performed.");
 
         #region PrintOutput
-        Debug.Log("----- RAW OUTPUT -----");
-        string s = "";
-        foreach (float o in output)
-        {
-            s += o;
-            s += "; ";
-        }
-        Debug.Log(s);
+        //Debug.Log("----- RAW OUTPUT -----");
+        //string s = "";
+        //foreach (float o in output)
+        //{
+        //    s += o;
+        //    s += "; ";
+        //}
+        //Debug.Log(s);
         #endregion
 
         // Interpret result
         int numNode = distance.GetLength(0);
         int numEdge = ((numNode / 2) * ((numNode / 2) - 1)) + numNode;
+        List<FlowData> flow = new List<FlowData>();
         for (int e = 0; e < numEdge; e++)
         {
             int index = output.Length - numEdge - 1 + e;
-            Debug.Log("Edge " + e + " has flow " + output[index]);
+            int[] edgeNodes = EdgeNodesByIndex(edgeind, e);
+            //Debug.Log("Edge " + e + " has flow " + output[index] + " from node " + edgeNodes[0] + " to " + edgeNodes[1]);
+            if (edgeNodes[0] < (numNode / 2) && edgeNodes[1] < (numNode / 2) && output[index] != 0)
+            {
+                // Edge exists between two non-surrogate nodes
+                Debug.Log(output[index] + " flows from node " + edgeNodes[1] + " to node " + edgeNodes[0]);
+                flow.Add(new FlowData(edgeNodes[1], edgeNodes[0], 0, output[index]));
+            }
         }
+
+        // Output result
+        return flow;
     }
 
     private static float[][] CollectProduction(List<SystemNode> originalNodes)
@@ -471,5 +482,40 @@ public static class IndependentLP
 
         // Return the new tableau
         return tableau;
+    }
+
+    private static int[] EdgeNodesByIndex(int[,] edgeind, int i)
+    {
+        for (int a = 0; a < edgeind.GetLength(0); a++)
+        {
+            for (int b = 0; b < edgeind.GetLength(1); b++)
+            {
+                if (edgeind[a, b] == i)
+                {
+                    int[] edgeNodes = new int[2];
+                    edgeNodes[0] = a;
+                    edgeNodes[1] = b;
+                    return edgeNodes;
+                }
+            }
+        }
+        Debug.LogError("Edge index not found.");
+        return null;
+    }
+}
+
+public class FlowData
+{
+    public int source;
+    public int target;
+    public int resource;
+    public float amount;
+
+    public FlowData(int source, int target, int resource, float amount)
+    {
+        this.source = source;
+        this.target = target;
+        this.resource = resource;
+        this.amount = amount;
     }
 }

@@ -71,7 +71,8 @@ public class Problem05Controller : MonoBehaviour
         {
             if (!flowsCalculated)
             {
-                IndependentLP.MinimumCostFlow(node);
+                List<FlowData> flow = IndependentLP.MinimumCostFlow(node);
+                BuildFlows(flow);
         
                 flowsCalculated = true;
             }
@@ -90,6 +91,22 @@ public class Problem05Controller : MonoBehaviour
                 else Gizmos.color = Color.green;
 
                 Gizmos.DrawSphere(n.pos, 0.1f);
+            }
+        }
+
+        // Draw resource flows
+        if (node != null)
+        {
+            Gizmos.color = Color.yellow;
+            foreach (SystemNode n in node)
+            {
+                if (n.resource != null)
+                {
+                    foreach (ResourceEdge r in n.resource)
+                    {
+                        Gizmos.DrawLine(n.pos, r.target.pos);
+                    }
+                }
             }
         }
     }
@@ -121,6 +138,14 @@ public class Problem05Controller : MonoBehaviour
         {
             node[i].AddDistanceEdge(new DistanceEdge(node[n], (node[n].pos - node[i].pos).magnitude));
             node[n].AddDistanceEdge(new DistanceEdge(node[i], (node[i].pos - node[n].pos).magnitude));
+        }
+    }
+
+    private void BuildFlows(List<FlowData> flow)
+    {
+        foreach (FlowData f in flow)
+        {
+            node[f.source].AddResourceEdge(new ResourceEdge(node[f.target], f.amount, f.resource));
         }
     }
 }
