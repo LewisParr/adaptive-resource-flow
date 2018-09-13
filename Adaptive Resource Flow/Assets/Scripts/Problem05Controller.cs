@@ -22,32 +22,6 @@ public class Problem05Controller : MonoBehaviour
         flowsCalculated = false;
 
         node = new List<SystemNode>();
-
-        //float[] prod;
-        //
-        //prod = new float[1]; prod[0] = 0f;
-        //node.Add(new SystemNode(new Vector3(0, 0, 0), prod, 1f));
-        //prod = new float[1]; prod[0] = 1f;
-        //node.Add(new SystemNode(new Vector3(3, 0, 3), prod, 1f));
-        //prod = new float[1]; prod[0] = 0f;
-        //node.Add(new SystemNode(new Vector3(2, 0, 1), prod, 1f));
-        //prod = new float[1]; prod[0] = -1f;
-        //node.Add(new SystemNode(new Vector3(0, 0, 2), prod, 1f));
-        //prod = new float[1]; prod[0] = 0f;
-        //node.Add(new SystemNode(new Vector3(2, 0, 4), prod, 1f));
-        //
-        //for (int a = 0; a < node.Count; a++)
-        //{
-        //    for (int b = 0; b < node.Count; b++)
-        //    {
-        //        if (b != a)
-        //        {
-        //            node[a].AddDistanceEdge(new DistanceEdge(node[b], (node[a].pos - node[b].pos).magnitude));
-        //        }
-        //    }
-        //}
-        //
-        //IndependentLP.MinimumCostFlow(node);
     }
 
     private void Update()
@@ -64,6 +38,13 @@ public class Problem05Controller : MonoBehaviour
                 {
                     allNodesGenerated = true;
                     Debug.Log("All nodes generated.");
+
+                    float net = 0;
+                    foreach (SystemNode n in node)
+                    {
+                        net += n.prod[0];
+                    }
+                    Debug.Log("Net production: " + net);
                 }
             }
         }
@@ -105,6 +86,7 @@ public class Problem05Controller : MonoBehaviour
                     foreach (ResourceEdge r in n.resource)
                     {
                         Gizmos.DrawLine(n.pos, r.target.pos);
+                        Gizmos.DrawWireSphere(r.target.pos, 0.15f);
                     }
                 }
             }
