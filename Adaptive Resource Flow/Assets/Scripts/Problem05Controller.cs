@@ -86,7 +86,7 @@ public class Problem05Controller : MonoBehaviour
                     foreach (ResourceEdge r in n.resource)
                     {
                         Gizmos.DrawLine(n.pos, r.target.pos);
-                        Gizmos.DrawWireSphere(r.target.pos, 0.15f);
+                        Gizmos.DrawWireSphere(r.target.pos, 0.3f);
                     }
                 }
             }

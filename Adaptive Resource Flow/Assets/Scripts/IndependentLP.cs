@@ -174,7 +174,7 @@ public static class IndependentLP
                         Application.Quit();
                     }
                 }
-                distance[currentNode, targetNode] = d.distance;
+                distance[currentNode, targetNode] = Mathf.Pow(d.distance, 1.2f);
             }
         }
         return distance;
