@@ -28,9 +28,18 @@ public class FacilityObject : AstroObject
 
 public class BodyObject : AstroObject
 {
-    public BodyObject(Vector3 pos) : base(pos)
-    {
+    private float[] intcap; public float[] InternalCapacity { get { return intcap; } }
+    private float[] inttax; public float[] InternalTax { get { return inttax; } }
+    private float[] imexcap; public float[] ImportExportCapacity { get { return imexcap; } }
+    private float[] imextax; public float[] ImportExportTax { get { return imextax; } }
 
+    public BodyObject(Vector3 pos, float[] intcap, float[] inttax, float[] imexcap, float[] imextax) 
+        : base(pos)
+    {
+        this.intcap = intcap;
+        this.inttax = inttax;
+        this.imexcap = imexcap;
+        this.imextax = imextax;
     }
 }
 
