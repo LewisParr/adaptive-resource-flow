@@ -15,6 +15,8 @@ public class Problem05Controller : MonoBehaviour
     private bool allNodesGenerated;
     private bool flowsCalculated;
 
+    private float maxFlow;
+
     private void OnEnable()
     {
         frameCounter = 0;
@@ -78,13 +80,13 @@ public class Problem05Controller : MonoBehaviour
         // Draw resource flows
         if (node != null)
         {
-            Gizmos.color = Color.yellow;
             foreach (SystemNode n in node)
             {
                 if (n.resource != null)
                 {
                     foreach (ResourceEdge r in n.resource)
                     {
+                        Gizmos.color = Color.Lerp(Color.black, Color.white, r.magnitude);
                         Gizmos.DrawLine(n.pos, r.target.pos);
                         Gizmos.DrawWireSphere(r.target.pos, 0.3f);
                     }
@@ -125,9 +127,11 @@ public class Problem05Controller : MonoBehaviour
 
     private void BuildFlows(List<FlowData> flow)
     {
+        maxFlow = 0;
         foreach (FlowData f in flow)
         {
             node[f.source].AddResourceEdge(new ResourceEdge(node[f.target], f.amount, f.resource));
+            if (f.amount > maxFlow) maxFlow = f.amount;
         }
     }
 }
