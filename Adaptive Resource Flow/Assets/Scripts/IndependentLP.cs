@@ -189,10 +189,13 @@ public static class IndependentLP
 
         for (int n = 0; n < _N; n++)
         {
+            // Set original node's production values to zero
             newProd[n] = new float[prod[n].Length];
+
+            // Set surrogate node's production values to original
             newProd[n + _N] = prod[n];
         }
-
+        // Return the new production data
         return newProd;
     }
 
