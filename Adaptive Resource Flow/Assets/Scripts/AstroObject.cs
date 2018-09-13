@@ -45,8 +45,19 @@ public class BodyObject : AstroObject
 
 public class SystemObject : AstroObject
 {
-    public SystemObject(Vector3 pos) : base(pos)
-    {
+    private float[] intcap; public float[] InternalCapacity { get { return intcap; } }
+    private float[] inttax; public float[] InternalTax { get { return inttax; } }
+    private float[] imexcap; public float[] ImportExportCapacity { get { return imexcap; } }
+    private float[] imextax; public float[] ImportExportTax { get { return imextax; } }
+    private float thrutax; public float ThroughflowTax { get { return thrutax; } }
 
+    public SystemObject(Vector3 pos, float[] intcap, float[] inttax, float[] imexcap, float[] imextax, 
+        float thrutax) : base(pos)
+    {
+        this.intcap = intcap;
+        this.inttax = inttax;
+        this.imexcap = imexcap;
+        this.imextax = imextax;
+        this.thrutax = thrutax;
     }
 }
