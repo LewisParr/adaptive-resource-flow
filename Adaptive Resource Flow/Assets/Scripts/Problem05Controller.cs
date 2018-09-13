@@ -8,6 +8,8 @@ public class Problem05Controller : MonoBehaviour
     public int numNodes = 20;
     [Range(0.1f, 0.5f)]
     public float productionProb = 0.25f;
+    [Range(1, 10)]
+    public int numResources = 2;
 
     private List<SystemNode> node;
 
@@ -107,9 +109,10 @@ public class Problem05Controller : MonoBehaviour
         Vector3 pos = new Vector3(x, 0, y);
 
         // Production
-        float[] prod = new float[1];
-        if (Random.value < productionProb) prod[0] = (Random.value - 0.5f) * 2f;
-        else prod[0] = 0f;
+        float[] prod = new float[numResources];
+        for (int p = 0; p < numResources; p++)
+            if (Random.value < productionProb) prod[p] = (Random.value - 0.5f) * 2f;
+            else prod[p] = 0f;
 
         // Infrastructure
         float maxOut = (Random.value * 0.5f) + 0.5f;
