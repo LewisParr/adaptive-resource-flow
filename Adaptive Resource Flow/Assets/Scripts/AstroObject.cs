@@ -24,6 +24,7 @@ public class FacilityObject : AstroObject
     private float[] prod; public float[] Production { get { return prod; } }
     private float[] imexcap; public float[] ImportExportCapacity { get { return imexcap; } }
     private float[] imextax; public float[] ImportExportTax { get { return imextax; } }
+    private BodyObject body; public BodyObject PlanetaryBody { get { return body; } set { body = value; } }
 
     public FacilityObject(Vector3 pos, float[] prod, float[] imexcap, float[] imextax) : base(pos)
     {
@@ -39,6 +40,8 @@ public class BodyObject : AstroObject
     private float[] inttax; public float[] InternalTax { get { return inttax; } }
     private float[] imexcap; public float[] ImportExportCapacity { get { return imexcap; } }
     private float[] imextax; public float[] ImportExportTax { get { return imextax; } }
+    private SystemObject system; public SystemObject PlanetarySystem { get { return system; } set { system = value; } }
+    private List<FacilityObject> facility; public List<FacilityObject> Facility { get { return facility; } set { facility = value; } }
 
     public BodyObject(Vector3 pos, float[] intcap, float[] inttax, float[] imexcap, float[] imextax) 
         : base(pos)
@@ -47,6 +50,7 @@ public class BodyObject : AstroObject
         this.inttax = inttax;
         this.imexcap = imexcap;
         this.imextax = imextax;
+        facility = new List<FacilityObject>();
     }
 }
 
@@ -57,6 +61,7 @@ public class SystemObject : AstroObject
     private float[] imexcap; public float[] ImportExportCapacity { get { return imexcap; } }
     private float[] imextax; public float[] ImportExportTax { get { return imextax; } }
     private float thrutax; public float ThroughflowTax { get { return thrutax; } }
+    private List<BodyObject> body; public List<BodyObject> Body { get { return body; } set { body = value; } }
 
     public SystemObject(Vector3 pos, float[] intcap, float[] inttax, float[] imexcap, float[] imextax, 
         float thrutax) : base(pos)
@@ -66,5 +71,6 @@ public class SystemObject : AstroObject
         this.imexcap = imexcap;
         this.imextax = imextax;
         this.thrutax = thrutax;
+        body = new List<BodyObject>();
     }
 }

@@ -56,19 +56,31 @@ public class Problem06Controller : MonoBehaviour
             Gizmos.color = Color.yellow;
             foreach (SystemObject s in system)
             {
-                Gizmos.DrawWireSphere(s.Position, 1f);
+                Gizmos.DrawSphere(s.Position, 0.25f);
+                if (s.Body != null)
+                {
+                    foreach (BodyObject b in s.Body)
+                    {
+                        Gizmos.DrawLine(s.Position, b.Position);
+                    }
+                }
             }
         }
-
         if (body != null)
         {
             Gizmos.color = Color.white;
             foreach (BodyObject b in body)
             {
                 Gizmos.DrawSphere(b.Position, 0.1f);
+                if (b.Facility != null)
+                {
+                    foreach (FacilityObject f in b.Facility)
+                    {
+                        Gizmos.DrawLine(b.Position, f.Position);
+                    }
+                }
             }
         }
-
         if (facility != null)
         {
             Gizmos.color = Color.green;
@@ -113,7 +125,8 @@ public class Problem06Controller : MonoBehaviour
         float thrutax = 0.10f;
 
         // Instantiate system
-        SystemObject S = new SystemObject(pos, intcap, inttax, imexcap, imextax, thrutax);
+        system.Add(new SystemObject(pos, intcap, inttax, imexcap, imextax, thrutax));
+        int si = system.Count - 1;
 
         // Number of planetary bodies
         int numBody = Mathf.FloorToInt(Random.value * 8);
@@ -122,7 +135,7 @@ public class Problem06Controller : MonoBehaviour
         {
             // Position
             float angle = b * ((2 * Mathf.PI) / numBody);
-            float radius = 1f;
+            float radius = 0.75f;
             float _x = radius * Mathf.Sin(angle);
             float _y = radius * Mathf.Cos(angle);
             Vector3 _pos = pos + new Vector3(_x, 0, _y);
@@ -144,11 +157,12 @@ public class Problem06Controller : MonoBehaviour
             _imextax[0] = 0.10f; _imextax[1] = 0.10f;
 
             // Instantiate body
-            BodyObject B = new BodyObject(_pos, _intcap, _inttax, _imexcap, _imextax);
+            body.Add(new BodyObject(_pos, _intcap, _inttax, _imexcap, _imextax));
+            int bi = body.Count - 1;
 
             // Connect to system
-            S.AddEdge(new AstroEdge(B));
-            B.AddEdge(new AstroEdge(S));
+            system[si].Body.Add(body[bi]);
+            body[bi].PlanetarySystem = system[si];
 
             // Number of facilities
             int numFacility = Mathf.FloorToInt(Random.value * 16);
@@ -181,24 +195,13 @@ public class Problem06Controller : MonoBehaviour
                 __imextax[0] = 0.10f; __imextax[1] = 0.10f;
 
                 // Instantiate facility
-                FacilityObject F = new FacilityObject(__pos, prod, __imexcap, __imextax);
+                facility.Add(new FacilityObject(__pos, prod, __imexcap, __imextax));
+                int fi = facility.Count - 1;
 
                 // Connect to body
-                B.AddEdge(new AstroEdge(F));
-                F.AddEdge(new AstroEdge(B));
-
-                // Add to list
-                all.Add(F);
-                facility.Add(F);
+                body[bi].Facility.Add(facility[fi]);
+                facility[fi].PlanetaryBody = body[bi];
             }
-
-            // Add to list
-            all.Add(B);
-            body.Add(B);
         }
-
-        // Add to list
-        all.Add(S);
-        system.Add(S);
     }
 }

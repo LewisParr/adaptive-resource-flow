@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class AstroEdge
 {
-    private AstroObject target; public AstroObject Target { get { return Target; } }
+    private AstroObject target; public AstroObject Target { get { return target; } }
 
     public AstroEdge(AstroObject target)
     {
