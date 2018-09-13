@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class Problem06Controller : MonoBehaviour
 {
+    [Range(4, 20)]
+    public float width = 12;
+    [Range(4, 20)]
+    public float height = 12;
     [Range(3, 24)]
     public int numSys = 20;
     [Range(0.1f, 0.5f)]
@@ -36,6 +40,11 @@ public class Problem06Controller : MonoBehaviour
             if (frameCounter % 10 == 0)
             {
                 GenerateSystem();
+
+                if (system.Count == numSys)
+                {
+                    allNodesGenerated = true;
+                }
             }
         }
     }
@@ -80,8 +89,8 @@ public class Problem06Controller : MonoBehaviour
         int nAll = all.Count;
 
         // Position
-        float x = Random.value * numSys;
-        float y = Random.value * numSys;
+        float x = Random.value * width;
+        float y = Random.value * height;
         Vector3 pos = new Vector3(x, 0, y);
 
         // Internal capacities
@@ -112,9 +121,10 @@ public class Problem06Controller : MonoBehaviour
         for (int b = 0; b < numBody; b++)
         {
             // Position
-            float angle = (2 * Mathf.PI) / numBody;
-            float _x = Random.value;
-            float _y = Random.value;
+            float angle = b * ((2 * Mathf.PI) / numBody);
+            float radius = 1f;
+            float _x = radius * Mathf.Sin(angle);
+            float _y = radius * Mathf.Cos(angle);
             Vector3 _pos = pos + new Vector3(_x, 0, _y);
 
             // Internal capacities
@@ -146,8 +156,10 @@ public class Problem06Controller : MonoBehaviour
             for (int f = 0; f < numFacility; f++)
             {
                 // Position
-                float __x = Random.value / 2f;
-                float __y = Random.value / 2f;
+                float _angle = f * ((2 * Mathf.PI) / numFacility);
+                float _radius = 0.25f;
+                float __x = _radius * Mathf.Sin(_angle);
+                float __y = _radius * Mathf.Cos(_angle);
                 Vector3 __pos = _pos + new Vector3(__x, 0, __y);
 
                 // Production
