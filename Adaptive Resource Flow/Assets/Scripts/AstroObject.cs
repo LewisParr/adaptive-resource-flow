@@ -5,10 +5,17 @@ using UnityEngine;
 public class AstroObject
 {
     private Vector3 pos; public Vector3 Position { get { return pos; } }
+    private List<AstroEdge> edge; public List<AstroEdge> Edge { get { return edge; } }
 
     public AstroObject(Vector3 pos)
     {
         this.pos = pos;
+    }
+
+    public void AddEdge(AstroEdge edge)
+    {
+        if (this.edge == null) this.edge = new List<AstroEdge>();
+        this.edge.Add(edge);
     }
 }
 

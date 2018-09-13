@@ -40,9 +40,42 @@ public class Problem06Controller : MonoBehaviour
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        if (system != null)
+        {
+            Gizmos.color = Color.yellow;
+            foreach (SystemObject s in system)
+            {
+                Gizmos.DrawWireSphere(s.Position, 1f);
+            }
+        }
+
+        if (body != null)
+        {
+            Gizmos.color = Color.white;
+            foreach (BodyObject b in body)
+            {
+                Gizmos.DrawSphere(b.Position, 0.1f);
+            }
+        }
+
+        if (facility != null)
+        {
+            Gizmos.color = Color.green;
+            foreach (FacilityObject f in facility)
+            {
+                Gizmos.DrawSphere(f.Position, 0.05f);
+            }
+        }
+    }
+
     private void GenerateSystem()
     {
         if (all == null) all = new List<AstroObject>();
+        if (system == null) system = new List<SystemObject>();
+        if (body == null) body = new List<BodyObject>();
+        if (facility == null) facility = new List<FacilityObject>();
 
         int nAll = all.Count;
 
@@ -79,6 +112,7 @@ public class Problem06Controller : MonoBehaviour
         for (int b = 0; b < numBody; b++)
         {
             // Position
+            float angle = (2 * Mathf.PI) / numBody;
             float _x = Random.value;
             float _y = Random.value;
             Vector3 _pos = pos + new Vector3(_x, 0, _y);
@@ -101,6 +135,10 @@ public class Problem06Controller : MonoBehaviour
 
             // Instantiate body
             BodyObject B = new BodyObject(_pos, _intcap, _inttax, _imexcap, _imextax);
+
+            // Connect to system
+            S.AddEdge(new AstroEdge(B));
+            B.AddEdge(new AstroEdge(S));
 
             // Number of facilities
             int numFacility = Mathf.FloorToInt(Random.value * 16);
@@ -132,7 +170,23 @@ public class Problem06Controller : MonoBehaviour
 
                 // Instantiate facility
                 FacilityObject F = new FacilityObject(__pos, prod, __imexcap, __imextax);
+
+                // Connect to body
+                B.AddEdge(new AstroEdge(F));
+                F.AddEdge(new AstroEdge(B));
+
+                // Add to list
+                all.Add(F);
+                facility.Add(F);
             }
+
+            // Add to list
+            all.Add(B);
+            body.Add(B);
         }
+
+        // Add to list
+        all.Add(S);
+        system.Add(S);
     }
 }
