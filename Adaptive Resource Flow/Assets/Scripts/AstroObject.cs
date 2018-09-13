@@ -14,15 +14,21 @@ public class AstroObject
 
 public class FacilityObject : AstroObject
 {
-    public FacilityObject()
-    {
+    private float[] prod; public float[] Production { get { return prod; } }
+    private float[] imexcap; public float[] ImportExportCapacity { get { return imexcap; } }
+    private float[] imextax; public float[] ImportExportTax { get { return imextax; } }
 
+    public FacilityObject(Vector3 pos, float[] prod, float[] imexcap, float[] imextax) : base(pos)
+    {
+        this.prod = prod;
+        this.imexcap = imexcap;
+        this.imextax = imextax;
     }
 }
 
 public class BodyObject : AstroObject
 {
-    public BodyObject()
+    public BodyObject(Vector3 pos) : base(pos)
     {
 
     }
@@ -30,7 +36,7 @@ public class BodyObject : AstroObject
 
 public class SystemObject : AstroObject
 {
-    public SystemObject()
+    public SystemObject(Vector3 pos) : base(pos)
     {
 
     }
