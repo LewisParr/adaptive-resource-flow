@@ -237,27 +237,25 @@ public static class MultiResourceLP
             }
         }
 
-        string s = "";
-        for (int a = 0; a < numCol; a++)
-        {
-            s += augmat[0, a];
-            s += "; ";
-        }
-        Debug.Log(s);
-
         // Insert edge capacity constraint values
         for (int e = 0; e < numEdge; e++)
         {
-            // Identify edge
-            augmat[e + numNode, e] = +1;
+            int[] nodes = EdgeNodesFromIndex(edgeind, Mathf.FloorToInt(e / numRes));
 
-            // Insert artificial variable
-            augmat[e + numNode, numEdge + numNode + e] = +1;
+            // Insert edge capacity constraint values
+            augmat[e + numNode, e] = +1; // Identify edge            
+            augmat[e + numNode, numEdge + numNode + e] = +1; // Insert artificial variable
+            augmat[e + numNode, numCol - 1] = capacity[nodes[0], nodes[1]]; // Insert b-value
 
-            // Insert b-value
-            int[] nodes = EdgeNodesFromIndex(edgeind, e);
-            augmat[e + numNode, numCol - 1] = capacity[nodes[0], nodes[1]];
+            // Insert objective function values
+            augmat[numRow - 1, e] = cost[nodes[0], nodes[1]];
         }
+
+        // Process the minimisation problem
+        float[] output = Minimise(augmat);
+
+        // Interpret result
+
     }
 
     private static int BodyIndex(BodyObject b, List<BodyObject> l)
@@ -307,5 +305,163 @@ public static class MultiResourceLP
         }
         Debug.LogError("Edge index not found.");
         return null;
+    }
+
+    private static float[] Minimise(float[,] augmat)
+    {
+        // Form the transpose of the augmented matrix
+        float[,] _augmat = Transpose(augmat);
+
+        // Form the dual maximisation problem
+        float[,] tableau = InsertSlackVariables(_augmat);
+
+        // Process the maximisation problem
+        float[] output = Maximise(tableau, true);
+
+        // Return the result
+        return output;
+    }
+
+    private static float[,] Transpose(float[,] augmat)
+    {
+        int numRow = augmat.GetLength(1);
+        int numCol = augmat.GetLength(0);
+        float[,] transpose = new float[numRow, numCol];
+        for (int r = 0; r < numRow; r++)
+            for (int c = 0; c < numCol; c++)
+                transpose[r, c] = augmat[c, r];
+        return transpose;
+    }
+
+    private static float[,] InsertSlackVariables(float[,] augmat)
+    {
+        int numRow = augmat.GetLength(0);
+        int numCol = augmat.GetLength(1) + (numRow - 1);
+        float[,] tableau = new float[numRow, numCol];
+
+        // Insert matrix values (except b-values)
+        for (int r = 0; r < numRow; r++)
+            for (int c = 0; c < augmat.GetLength(1) - 1; c++)
+                tableau[r, c] = augmat[r, c];
+
+        // Insert b-values
+        for (int r = 0; r < numRow; r++)
+            tableau[r, numCol - 1] = augmat[r, augmat.GetLength(1) - 1];
+
+        // Insert slack values
+        for (int r = 0; r < numRow - 1; r++)
+            tableau[r, r + augmat.GetLength(1) - 1] = 1f;
+
+        // Return the completed tableau
+        return tableau;
+    }
+
+    private static float[] Maximise(float[,] tableau, bool dual = false)
+    {
+        // Run the simplex method
+        tableau = SimplexMethod(tableau);
+
+        if (!dual)
+        {
+            // Read results normally
+            Debug.LogError("NOT IMPLEMENTED");
+            return null;
+        }
+        else
+        {
+            // Return the bottom row
+            float[] output = new float[tableau.GetLength(1)];
+            for (int c = 0; c < tableau.GetLength(1); c++)
+                output[c] = tableau[tableau.GetLength(0) - 1, c];
+            return output;
+        }
+    }
+
+    private static float[,] SimplexMethod(float[,] tableau)
+    {
+        bool terminate = false;
+        while (!terminate)
+        {
+            // Locate the most negative entry in the bottom row
+            int enteringColumn = SelectEntering(tableau);
+
+            if (enteringColumn != -1)
+            {
+                // Locate the smallest nonnegative ratio
+                int departingRow = SelectDeparting(tableau, enteringColumn);
+
+                if (departingRow != -1)
+                {
+                    // Set pivot to 1 all others to zero
+                    tableau = Pivot(tableau, enteringColumn, departingRow);
+                }
+                else terminate = true;
+            }
+            else terminate = true;
+        }
+        return tableau;
+    }
+
+    private static int SelectEntering(float[,] tableau)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+        float minVal = float.MaxValue;
+        int enteringColumn = 0;
+        for (int c = 0; c < numCol; c++)
+            if (tableau[numRow - 1, c] < minVal)
+            {
+                minVal = tableau[numRow - 1, c];
+                enteringColumn = c;
+            }
+        if (!(minVal < 0)) return -1;
+        else
+        {
+            if (minVal == float.MaxValue) return -1;
+            else return enteringColumn;
+        }
+    }
+
+    private static int SelectDeparting(float[,] tableau, int enteringColumn)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+        float minRatio = float.MaxValue;
+        int departingRow = 0;
+        for (int r = 0; r < numRow - 1; r++)
+        {
+            float ratio = tableau[r, numCol - 1] / tableau[r, enteringColumn];
+            if (!(ratio < 0))
+                if (ratio < minRatio)
+                {
+                    minRatio = ratio;
+                    departingRow = r;
+                }
+        }
+        if (minRatio == float.MaxValue) return -1;
+        else return departingRow;
+    }
+
+    private static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+
+        // Scale departing row so that pivot value is 1
+        float scaleValue = tableau[departingRow, enteringColumn];
+        for (int c = 0; c < numCol; c++)
+            tableau[departingRow, c] = tableau[departingRow, c] / scaleValue;
+
+        // Set other values in entering column to 0
+        for (int r = 0; r < numRow; r++)
+            if (r != departingRow)
+            {
+                float coefficient = -tableau[r, enteringColumn];
+                for (int c = 0; c < numCol; c++)
+                    tableau[r, c] = (coefficient * tableau[departingRow, c]) + tableau[r, c];
+            }
+
+        // Return the new tableau
+        return tableau;
     }
 }
