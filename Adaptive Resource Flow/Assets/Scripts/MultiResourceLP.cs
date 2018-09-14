@@ -38,10 +38,9 @@ public static class MultiResourceLP
         Debug.Log("Number of augmented matrix rows: " + numRow);
         Debug.Log("Number of augmented matrix columns: " + numCol);
 
-        // Instantiate edge cost matrix
         float[,] cost = new float[numNode, numNode];
+        float[,] capacity = new float[numNode, numNode];
 
-        // Insert edge costs
         for (int s1 = 0; s1 < numSys; s1++)
         {
             // Insert intersystem edge costs
@@ -60,6 +59,7 @@ public static class MultiResourceLP
 
                 // Insert values
                 cost[a, b] = c;
+                capacity[a, b] = Mathf.Infinity;
             }
 
             // Insert intrasystem edge costs
@@ -81,14 +81,19 @@ public static class MultiResourceLP
 
             // Insert throughflow tax
             cost[ser, see] = system[s1].ThroughflowTax;
+            capacity[ser, see] = system[s1].ThroughflowCapacity;
 
             // Insert import/export taxes
             cost[ser, sc] = system[s1].ImportExportTax[0];
+            capacity[ser, sc] = system[s1].ImportExportCapacity[0];
             cost[sc, see] = system[s1].ImportExportTax[1];
+            capacity[sc, see] = system[s1].ImportExportCapacity[1];
 
             // Insert internal taxes
             cost[sir, sc] = system[s1].InternalTax[0];
+            capacity[sir, sc] = system[s1].InternalCapacity[0];
             cost[sc, sie] = system[s1].InternalTax[1];
+            capacity[sc, sie] = system[s1].InternalCapacity[1];
 
             foreach (BodyObject bo in system[s1].Body)
             {
@@ -102,7 +107,9 @@ public static class MultiResourceLP
 
                 // Insert system-body edge costs
                 cost[sie, ber] = (system[s1].Position - body[b].Position).magnitude;
+                capacity[sie, ber] = Mathf.Infinity;
                 cost[bee, sir] = (system[s1].Position - body[b].Position).magnitude;
+                capacity[bee, sir] = Mathf.Infinity;
 
                 // Insert intrabody edge costs
 
@@ -117,11 +124,15 @@ public static class MultiResourceLP
 
                 // Insert import/export taxes
                 cost[ber, bc] = body[b].ImportExportTax[0];
+                capacity[ber, bc] = body[b].ImportExportCapacity[0];
                 cost[bc, bee] = body[b].ImportExportTax[1];
+                capacity[bc, bee] = body[b].ImportExportCapacity[1];
 
                 // Insert internal taxes
                 cost[bir, bc] = body[b].InternalTax[0];
+                capacity[bir, bc] = body[b].InternalCapacity[0];
                 cost[bc, bie] = body[b].InternalTax[1];
+                capacity[bc, bie] = body[b].InternalCapacity[1];
 
                 foreach (FacilityObject fo in bo.Facility)
                 {
@@ -135,7 +146,9 @@ public static class MultiResourceLP
 
                     // Insert body-facility edge costs
                     cost[bie, fr] = (body[b].Position - facility[f].Position).magnitude;
+                    capacity[bie, fr] = Mathf.Infinity;
                     cost[fe, bir] = (body[b].Position - facility[f].Position).magnitude;
+                    capacity[fe, bir] = Mathf.Infinity;
 
                     // Insert intrafacility edge costs
 
@@ -144,7 +157,9 @@ public static class MultiResourceLP
 
                     // Insert import/export taxes
                     cost[fr, fp] = facility[f].ImportExportTax[0];
+                    capacity[fr, fp] = facility[f].ImportExportCapacity[0];
                     cost[fp, fe] = facility[f].ImportExportTax[1];
+                    capacity[fp, fe] = facility[f].ImportExportCapacity[1];
                 }
             }
         }
@@ -239,7 +254,9 @@ public static class MultiResourceLP
             // Insert artificial variable
             augmat[e + numNode, numEdge + numNode + e] = +1;
 
-            // 
+            // Insert b-value
+            int[] nodes = EdgeNodesFromIndex(edgeind, e);
+            augmat[e + numNode, numCol - 1] = capacity[nodes[0], nodes[1]];
         }
     }
 
@@ -271,5 +288,24 @@ public static class MultiResourceLP
         }
         Debug.LogError("Object not found.");
         return -1;
+    }
+
+    private static int[] EdgeNodesFromIndex(int[,] edgeind, int e)
+    {
+        for (int a = 0; a < edgeind.GetLength(0); a++)
+        {
+            for (int b = 0; b < edgeind.GetLength(1); b++)
+            {
+                if (edgeind[a, b] == e)
+                {
+                    int[] nodes = new int[2];
+                    nodes[0] = a;
+                    nodes[1] = b;
+                    return nodes;
+                }
+            }
+        }
+        Debug.LogError("Edge index not found.");
+        return null;
     }
 }

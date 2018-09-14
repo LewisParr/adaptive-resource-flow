@@ -126,11 +126,14 @@ public class Problem06Controller : MonoBehaviour
         float[] imextax = new float[2];
         imextax[0] = 0.10f; imextax[1] = 0.10f;
 
+        // Throughflow capacity
+        float thrucap = 4;
+
         // Throughflow tax
         float thrutax = 0.10f;
 
         // Instantiate system
-        system.Add(new SystemObject(pos, intcap, inttax, imexcap, imextax, thrutax));
+        system.Add(new SystemObject(pos, intcap, inttax, imexcap, imextax, thrucap, thrutax));
         int si = system.Count - 1;
 
         // Number of planetary bodies
