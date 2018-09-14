@@ -206,6 +206,19 @@ public static class MultiResourceLP
 
                 // Insert artificial variable
                 augmat[n, numEdge + n] = +1;
+
+                // Insert b-value
+                if (n >= (5 * numSys) + (5 * numBod))
+                {
+                    // This is a facility node
+                    if ((n - (5 * numSys) - (5 * numBod)) % 2 == 0)
+                    {
+                        // This is a facility production node
+                        augmat[n, numCol - 1] = facility[((n - (5 * numSys) - (5 * numBod)) - 2) / 3].Production[r];
+                    }
+                    else augmat[n, numCol - 1] = 0;
+                }
+                else augmat[n, numCol - 1] = 0;
             }
         }
 
@@ -217,7 +230,17 @@ public static class MultiResourceLP
         }
         Debug.Log(s);
 
+        // Insert edge capacity constraint values
+        for (int e = 0; e < numEdge; e++)
+        {
+            // Identify edge
+            augmat[e + numNode, e] = +1;
 
+            // Insert artificial variable
+            augmat[e + numNode, numEdge + numNode + e] = +1;
+
+            // 
+        }
     }
 
     private static int BodyIndex(BodyObject b, List<BodyObject> l)
