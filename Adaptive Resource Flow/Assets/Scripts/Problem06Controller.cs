@@ -15,7 +15,6 @@ public class Problem06Controller : MonoBehaviour
     [Range(1, 10)]
     public int numResources = 2;
 
-    private List<AstroObject> all;
     private List<SystemObject> system;
     private List<BodyObject> body;
     private List<FacilityObject> facility;
@@ -47,6 +46,15 @@ public class Problem06Controller : MonoBehaviour
                 }
             }
         }
+        else
+        {
+            if (!flowsCalculated)
+            {
+                MultiResourceLP.MinimumCostFlow(system, body, facility);
+
+                flowsCalculated = true;
+            }
+        }
     }
 
     private void OnDrawGizmos()
@@ -56,7 +64,7 @@ public class Problem06Controller : MonoBehaviour
             Gizmos.color = Color.yellow;
             foreach (SystemObject s in system)
             {
-                Gizmos.DrawSphere(s.Position, 0.25f);
+                Gizmos.DrawWireSphere(s.Position, 0.25f);
                 if (s.Body != null)
                 {
                     foreach (BodyObject b in s.Body)
@@ -93,12 +101,9 @@ public class Problem06Controller : MonoBehaviour
 
     private void GenerateSystem()
     {
-        if (all == null) all = new List<AstroObject>();
         if (system == null) system = new List<SystemObject>();
         if (body == null) body = new List<BodyObject>();
         if (facility == null) facility = new List<FacilityObject>();
-
-        int nAll = all.Count;
 
         // Position
         float x = Random.value * width;
