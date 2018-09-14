@@ -158,8 +158,28 @@ public static class MultiResourceLP
                 if (cost[n1, n2] == 0) { noConnection++; cost[n1, n2] = Mathf.Infinity; }
             }
         }
+        int numNonInf = (numNode * numNode) - noConnection;
 
-        Debug.Log("Number of non-infinite edge costs: " + ((numNode * numNode) - noConnection));
+        Debug.Log("Number of non-infinite edge costs: " + numNonInf);
+
+        // Instantiate edge index matrix
+        int i = -1;
+        int[,] edgeind = new int[cost.GetLength(0), cost.GetLength(1)];
+        for (int n = 0; n < cost.GetLength(0); n++)
+        {
+            for (int _n = 0; _n < cost.GetLength(1); _n++)
+            {
+                if (cost[n, _n] != Mathf.Infinity)
+                {
+                    i++;
+                    edgeind[n, _n] = i;
+                }
+                else
+                {
+                    edgeind[n, _n] = -1;
+                }
+            }
+        }
 
         // Instantiate augmented matrix
         float[,] augmat = new float[numRow, numCol];
@@ -169,9 +189,35 @@ public static class MultiResourceLP
         {
             for (int n = 0; n < numNode; n++)
             {
+                for (int _n = 0; _n < numNode; _n++)
+                {
+                    // Check for edge to _n
+                    if (cost[n, _n] != Mathf.Infinity)
+                    {
+                        augmat[n, (r * numNonInf) + edgeind[n, _n]] = +1;
+                    }
 
+                    // Check for edge from _n
+                    if (cost[_n, n] != Mathf.Infinity)
+                    {
+                        augmat[n, (r * numNonInf) + edgeind[_n, n]] = -1;
+                    }
+                }
+
+                // Insert artificial variable
+                augmat[n, numEdge + n] = +1;
             }
         }
+
+        string s = "";
+        for (int a = 0; a < numCol; a++)
+        {
+            s += augmat[0, a];
+            s += "; ";
+        }
+        Debug.Log(s);
+
+
     }
 
     private static int BodyIndex(BodyObject b, List<BodyObject> l)
