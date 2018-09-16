@@ -23,20 +23,18 @@ public static class MultiResourceLP
         Debug.Log("Number of edges: " + numEdge);
 
         int numFlowCons = numNode * numRes;
-        int numCapCons = numEdge;
+        int numCapCons = (5 * numSys) + (4 * numBod) + (2 * numFac);
 
         Debug.Log("Number of flow conservation constraints: " + numFlowCons);
         Debug.Log("Number of capacity constraints: " + numCapCons);
 
-        int numArtVar = numFlowCons + numCapCons;
-
-        Debug.Log("Number of artificial variables: " + numArtVar);
-
         int numRow = numFlowCons + numCapCons + 1;
-        int numCol = numEdge + numArtVar + 1;
+        int numCol = numEdge + 1;
 
         Debug.Log("Number of augmented matrix rows: " + numRow);
         Debug.Log("Number of augmented matrix columns: " + numCol);
+
+        Debug.Log("Components counted at: " + Time.realtimeSinceStartup);
 
         float[,] cost = new float[numNode, numNode];
         float[,] capacity = new float[numNode, numNode];
@@ -177,6 +175,8 @@ public static class MultiResourceLP
 
         Debug.Log("Number of non-infinite edge costs: " + numNonInf);
 
+        Debug.Log("Edge costs and capacities stored at: " + Time.realtimeSinceStartup);
+
         // Instantiate edge index matrix
         int i = -1;
         int[,] edgeind = new int[cost.GetLength(0), cost.GetLength(1)];
@@ -219,9 +219,6 @@ public static class MultiResourceLP
                     }
                 }
 
-                // Insert artificial variable
-                augmat[n, numEdge + n] = +1;
-
                 // Insert b-value
                 if (n >= (5 * numSys) + (5 * numBod))
                 {
@@ -238,24 +235,34 @@ public static class MultiResourceLP
         }
 
         // Insert edge capacity constraint values
+        int iCapCon = -1;
         for (int e = 0; e < numEdge; e++)
         {
             int[] nodes = EdgeNodesFromIndex(edgeind, Mathf.FloorToInt(e / numRes));
 
-            // Insert edge capacity constraint values
-            augmat[e + numNode, e] = +1; // Identify edge            
-            augmat[e + numNode, numEdge + numNode + e] = +1; // Insert artificial variable
-            augmat[e + numNode, numCol - 1] = capacity[nodes[0], nodes[1]]; // Insert b-value
+            // Check if capacity is constrained
+            if (capacity[nodes[0], nodes[1]] != Mathf.Infinity)
+            {
+                iCapCon++;
 
-            // Insert objective function values
-            augmat[numRow - 1, e] = cost[nodes[0], nodes[1]];
+                // Insert edge capacity constraint values
+                augmat[iCapCon + numNode, iCapCon] = +1; // Identify edge
+                augmat[iCapCon + numNode, numCol - 1] = capacity[nodes[0], nodes[1]]; // Insert b-value
+
+                // Insert objective function values
+                augmat[numRow - 1, iCapCon] = cost[nodes[0], nodes[1]];
+            }
         }
+
+        Debug.Log("Augmented matrix constructured at: " + Time.realtimeSinceStartup);
 
         // Process the minimisation problem
         float[] output = Minimise(augmat);
 
-        // Interpret result
+        Debug.Log("Linear programming completed at: " + Time.realtimeSinceStartup);
 
+        // Interpret result
+        //Debug.Log("Length of output: " + output.Length);
     }
 
     private static int BodyIndex(BodyObject b, List<BodyObject> l)
@@ -314,6 +321,9 @@ public static class MultiResourceLP
 
         // Form the dual maximisation problem
         float[,] tableau = InsertSlackVariables(_augmat);
+
+        Debug.Log("Number of tableau rows: " + tableau.GetLength(0));
+        Debug.Log("Number of tableau columns: " + tableau.GetLength(1));
 
         // Process the maximisation problem
         float[] output = Maximise(tableau, true);
@@ -379,9 +389,12 @@ public static class MultiResourceLP
 
     private static float[,] SimplexMethod(float[,] tableau)
     {
+        int iterCount = 0;
         bool terminate = false;
         while (!terminate)
         {
+            iterCount++;
+
             // Locate the most negative entry in the bottom row
             int enteringColumn = SelectEntering(tableau);
 
@@ -398,6 +411,11 @@ public static class MultiResourceLP
                 else terminate = true;
             }
             else terminate = true;
+
+            // !!!
+            //if (iterCount == 1000) terminate = true;
+
+            Debug.Log("Simplex Method pass " + iterCount + " completed at: " + Time.realtimeSinceStartup);
         }
         return tableau;
     }
