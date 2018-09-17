@@ -73,7 +73,8 @@ public class Problem07Controller : MonoBehaviour
                                         float __angle = p * ((2 * Mathf.PI) / s.Body[b].Facility[f].Production.Length);
                                         float __radius = 0.20f;
                                         Vector3 ___pos = new Vector3(__radius * Mathf.Sin(__angle), 0, __radius * Mathf.Cos(__angle));
-                                        Gizmos.color = Color.red;
+                                        if (s.Body[b].Facility[f].Production[p] != 0) Gizmos.color = Color.Lerp(Color.red, Color.blue, 0.5f + s.Body[b].Facility[f].Production[p]);
+                                        else Gizmos.color = Color.white;
                                         Gizmos.DrawCube(s.Position + _pos + __pos + ___pos, new Vector3(0.10f, 0.10f, 0.10f));
                                     }
                                 }
