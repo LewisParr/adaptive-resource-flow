@@ -285,7 +285,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 20
   height: 20
-  delay: 20
+  delay: 30
 --- !u!4 &1602934412
 Transform:
   m_ObjectHideFlags: 0

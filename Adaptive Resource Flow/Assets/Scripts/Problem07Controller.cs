@@ -34,6 +34,7 @@ public class Problem07Controller : MonoBehaviour
         if (frame % delay == 0)
         {
             AddElement();
+            UpdateResourceFlows();
         }
     }
 
@@ -228,5 +229,107 @@ public class Problem07Controller : MonoBehaviour
         facility[facility.Count - 1].PlanetaryBody = body[bodyIndex];
 
         //Debug.Log("Facility created.");
+    }
+
+    private void UpdateResourceFlows()
+    {
+        /*
+         * Update the flow of resources through the world.
+         */
+
+        if (system.Count > 0 && body.Count > 0 && facility.Count > 0)
+        {
+            BuildAugmentedMatrix();
+        }
+    }
+
+    private void BuildAugmentedMatrix()
+    {
+        int nSys = system.Count;
+        int nBod = body.Count;
+        int nFac = facility.Count;
+        int nRes = facility[0].Production.Length;
+
+        int nSysNode = 5 * nSys;
+        int nBodNode = 5 * nBod;
+        int nFacNode = 3 * nFac;
+
+        int nInterSysEdge = nSys * (nSys - 1);
+        int nIntraSysEdge = 4 * nSys;
+        int nSysBodEdge = 2 * nBod;
+        int nIntraBodEdge = 4 * nBod;
+        int nBodFacEdge = 2 * nFac;
+        int nIntraFacEdge = 2 * nFac;
+
+        int nNode = nSysNode + nBodNode + nFacNode;
+        int nEdge = (nInterSysEdge + nIntraSysEdge + nSysBodEdge + nIntraBodEdge + nBodFacEdge
+            + nIntraFacEdge) * nRes;
+
+        int nFlowConstr = nNode * nRes;
+        int nCapConstr = (nIntraSysEdge + nIntraBodEdge + nIntraFacEdge) * nRes;
+
+        int nRow = nFlowConstr + nCapConstr;
+        int nCol = nEdge + 1;
+
+        BuildEdgeCostMatrix(nNode, nSys);
+
+        //BuildEdgeIndexMatrix();
+
+        float[,] augmat = new float[nRow, nCol]; // Instantiate augmented matrix
+
+
+    }
+
+    private void BuildEdgeCostMatrix(int nNode, int nSys)
+    {
+        float[,] cost = new float[nNode, nNode];
+
+        for (int s = 0; s < nSys; s++)
+        {
+            int iSysExtReceive = 0 + (5 * s);
+            int iSysExtEmitter = 1 + (5 * s);
+            int iSysCentral = 2 + (5 * s);
+            int iSysIntReceive = 3 + (5 * s);
+            int iSysIntEmitter = 4 + (5 * s);
+            float eCost = 0;
+
+            for (int _s = 0; _s < nSys; _s++)
+            {
+                #region Intersystem
+                if (s != _s)
+                {
+                    int _iSysExtReceive = 0 + (5 * _s);
+                    eCost = Mathf.Pow((system[s].Position - system[_s].Position).magnitude, 1.1f); // Cost of travel
+
+                    Debug.Log("System " + s + " (node " + iSysExtEmitter + ") to " + _s + " (" + _iSysExtReceive + ") costs " + eCost);
+
+                    cost[iSysExtEmitter, _iSysExtReceive] = eCost;
+                }
+                #endregion
+            }
+
+            #region Intrasystem
+            Debug.Log("System " + s + " import tax cost " + cost[iSysExtReceive, iSysCentral]);
+            cost[iSysExtReceive, iSysCentral] = system[s].ImportExportTax[0];
+
+            Debug.Log("System " + s + " export tax cost " + system[s].ImportExportTax[1]);
+            cost[iSysCentral, iSysExtEmitter] = system[s].ImportExportTax[1];
+
+            Debug.Log("System " + s + " inflow tax cost " + system[s].InternalTax[0]);
+            cost[iSysIntReceive, iSysCentral] = system[s].InternalTax[0];
+
+            Debug.Log("System " + s + " outflow tax cost " + system[s].InternalTax[1]);
+            cost[iSysCentral, iSysIntEmitter] = system[s].InternalTax[1];
+            #endregion
+
+
+        }
+    }
+
+    private void BuildEdgeIndexMatrix(float[,] cost)
+    {
+        int i = -1;
+        int[,] edgeind = new int[cost.GetLength(0), cost.GetLength(1)];
+
     }
 }
