@@ -309,21 +309,64 @@ public class Problem07Controller : MonoBehaviour
             }
 
             #region Intrasystem
-            Debug.Log("System " + s + " import tax cost " + cost[iSysExtReceive, iSysCentral]);
             cost[iSysExtReceive, iSysCentral] = system[s].ImportExportTax[0];
+            Debug.Log("System " + s + " import tax cost " + cost[iSysExtReceive, iSysCentral]);
 
-            Debug.Log("System " + s + " export tax cost " + system[s].ImportExportTax[1]);
             cost[iSysCentral, iSysExtEmitter] = system[s].ImportExportTax[1];
+            Debug.Log("System " + s + " export tax cost " + system[s].ImportExportTax[1]);
 
-            Debug.Log("System " + s + " inflow tax cost " + system[s].InternalTax[0]);
             cost[iSysIntReceive, iSysCentral] = system[s].InternalTax[0];
+            Debug.Log("System " + s + " inflow tax cost " + system[s].InternalTax[0]);
 
-            Debug.Log("System " + s + " outflow tax cost " + system[s].InternalTax[1]);
             cost[iSysCentral, iSysIntEmitter] = system[s].InternalTax[1];
+            Debug.Log("System " + s + " outflow tax cost " + system[s].InternalTax[1]);
+
             #endregion
 
+            foreach (BodyObject bo in system[s].Body)
+            {
+                int b = BodyIndex(bo, body);
 
+                int iBodExtReceive = 0 + (5 * b) + (5 * nSys);
+                int iBodExtEmitter = 1 + (5 * b) + (5 * nSys);
+                int iBodCentral = 2 + (5 * b) + (5 * nSys);
+                int iBodIntReceive = 3 + (5 * b) + (5 * nSys);
+                int iBodIntEmitter = 3 + (5 * b) + (5 * nSys);
+
+                #region System-Body
+                Debug.Log("System " + s + " <-> body " + b + " cost " + 1f);
+
+                cost[iSysIntEmitter, iBodExtReceive] = 1f;
+                cost[iBodIntEmitter, iSysIntReceive] = 1f;
+                #endregion
+
+                #region Intrabody
+                cost[iBodExtReceive, iBodCentral] = body[b].ImportExportTax[0];
+                Debug.Log("Body " + b + " import tax cost " + cost[iBodExtReceive, iBodCentral]);
+
+                cost[iBodCentral, iBodExtEmitter] = body[b].ImportExportTax[1];
+                Debug.Log("Body " + b + " import tax cost " + cost[iBodCentral, iBodExtEmitter]);
+
+                cost[iBodIntReceive, iBodCentral] = body[b].InternalTax[0];
+                Debug.Log("Body " + b + " import tax cost " + cost[iBodIntReceive, iBodCentral]);
+
+                cost[iBodCentral, iBodIntEmitter] = body[b].InternalTax[1];
+                Debug.Log("Body " + b + " import tax cost " + cost[iBodCentral, iBodIntEmitter]);
+                #endregion
+            }
         }
+    }
+
+    private int BodyIndex(BodyObject b, List<BodyObject> l)
+    {
+        int i = -1;
+        foreach (BodyObject c in l)
+        {
+            i++;
+            if (c == b) return i;
+        }
+        Debug.LogError("BodyObject not found.");
+        return -1;
     }
 
     private void BuildEdgeIndexMatrix(float[,] cost)
