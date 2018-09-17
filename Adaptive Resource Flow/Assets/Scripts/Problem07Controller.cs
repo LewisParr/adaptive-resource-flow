@@ -44,27 +44,39 @@ public class Problem07Controller : MonoBehaviour
             foreach (SystemObject s in system)
             {
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(s.Position, 0.25f);
+                Gizmos.DrawWireSphere(s.Position, 0.30f);
 
                 if (s.Body != null)
                 {
                     for (int b = 0; b < s.Body.Count; b++)
                     {
                         float angle = b * ((2 * Mathf.PI) / s.Body.Count);
-                        float radius = 0.75f;
+                        float radius = 1.20f;
                         Vector3 _pos = new Vector3(radius * Mathf.Sin(angle), 0, radius * Mathf.Cos(angle));
                         Gizmos.color = Color.white;
-                        Gizmos.DrawWireSphere(s.Position + _pos, 0.10f);
+                        Gizmos.DrawWireSphere(s.Position + _pos, 0.25f);
 
                         if (s.Body[b].Facility != null)
                         {
                             for (int f = 0; f < s.Body[b].Facility.Count; f++)
                             {
                                 float _angle = f * ((2 * Mathf.PI) / s.Body[b].Facility.Count);
-                                float _radius = 0.25f;
+                                float _radius = 0.60f;
                                 Vector3 __pos = new Vector3(_radius * Mathf.Sin(_angle), 0, _radius * Mathf.Cos(_angle));
                                 Gizmos.color = Color.green;
-                                Gizmos.DrawWireSphere(s.Position + _pos + __pos, 0.05f);
+                                Gizmos.DrawWireSphere(s.Position + _pos + __pos, 0.10f);
+
+                                if (s.Body[b].Facility[f].Production != null)
+                                {
+                                    for (int p = 0; p < s.Body[b].Facility[f].Production.Length; p++)
+                                    {
+                                        float __angle = p * ((2 * Mathf.PI) / s.Body[b].Facility[f].Production.Length);
+                                        float __radius = 0.20f;
+                                        Vector3 ___pos = new Vector3(__radius * Mathf.Sin(__angle), 0, __radius * Mathf.Cos(__angle));
+                                        Gizmos.color = Color.red;
+                                        Gizmos.DrawCube(s.Position + _pos + __pos + ___pos, new Vector3(0.10f, 0.10f, 0.10f));
+                                    }
+                                }
                             }
                         }
                     }
@@ -144,7 +156,7 @@ public class Problem07Controller : MonoBehaviour
         // Instantiate system
         system.Add(new SystemObject(pos, intcap, inttax, imexcap, imextax, thrucap, thrutax));
 
-        Debug.Log("System created.");
+        //Debug.Log("System created.");
     }
 
     private void AddBody()
@@ -178,7 +190,7 @@ public class Problem07Controller : MonoBehaviour
         system[systemIndex].Body.Add(body[body.Count - 1]);
         body[body.Count - 1].PlanetarySystem = system[systemIndex];
 
-        Debug.Log("Body created.");
+        //Debug.Log("Body created.");
     }
 
     private void AddFacility()
@@ -214,6 +226,6 @@ public class Problem07Controller : MonoBehaviour
         body[bodyIndex].Facility.Add(facility[facility.Count - 1]);
         facility[facility.Count - 1].PlanetaryBody = body[bodyIndex];
 
-        Debug.Log("Facility created.");
+        //Debug.Log("Facility created.");
     }
 }
