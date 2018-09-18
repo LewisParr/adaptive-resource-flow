@@ -302,25 +302,30 @@ public class Problem07Controller : MonoBehaviour
                     int _iSysExtReceive = 0 + (5 * _s);
                     eCost = Mathf.Pow((system[s].Position - system[_s].Position).magnitude, 1.1f); // Cost of travel
 
-                    Debug.Log("System " + s + " (node " + iSysExtEmitter + ") to " + _s + " (" + _iSysExtReceive + ") costs " + eCost);
+                    //Debug.Log("System " + s + " (node " + iSysExtEmitter + ") to " + _s + " (" + _iSysExtReceive + ") costs " + eCost);
 
                     cost[iSysExtEmitter, _iSysExtReceive] = eCost;
+                }
+                else
+                {
+                    int _iSysExtReceive = 0 + (5 * _s);
+                    cost[iSysExtEmitter, _iSysExtReceive] = Mathf.Infinity;
                 }
                 #endregion
             }
 
             #region Intrasystem
             cost[iSysExtReceive, iSysCentral] = system[s].ImportExportTax[0];
-            Debug.Log("System " + s + " import tax cost " + cost[iSysExtReceive, iSysCentral]);
+            //Debug.Log("System " + s + " import tax cost " + cost[iSysExtReceive, iSysCentral]);
 
             cost[iSysCentral, iSysExtEmitter] = system[s].ImportExportTax[1];
-            Debug.Log("System " + s + " export tax cost " + system[s].ImportExportTax[1]);
+            //Debug.Log("System " + s + " export tax cost " + system[s].ImportExportTax[1]);
 
             cost[iSysIntReceive, iSysCentral] = system[s].InternalTax[0];
-            Debug.Log("System " + s + " inflow tax cost " + system[s].InternalTax[0]);
+            //Debug.Log("System " + s + " inflow tax cost " + system[s].InternalTax[0]);
 
             cost[iSysCentral, iSysIntEmitter] = system[s].InternalTax[1];
-            Debug.Log("System " + s + " outflow tax cost " + system[s].InternalTax[1]);
+            //Debug.Log("System " + s + " outflow tax cost " + system[s].InternalTax[1]);
 
             #endregion
 
@@ -335,7 +340,7 @@ public class Problem07Controller : MonoBehaviour
                 int iBodIntEmitter = 3 + (5 * b) + (5 * nSys);
 
                 #region System-Body
-                Debug.Log("System " + s + " <-> body " + b + " cost " + 1f);
+                //Debug.Log("System " + s + " <-> body " + b + " cost " + 1f);
 
                 cost[iSysIntEmitter, iBodExtReceive] = 1f;
                 cost[iBodIntEmitter, iSysIntReceive] = 1f;
@@ -343,16 +348,16 @@ public class Problem07Controller : MonoBehaviour
 
                 #region Intrabody
                 cost[iBodExtReceive, iBodCentral] = body[b].ImportExportTax[0];
-                Debug.Log("Body " + b + " import tax cost " + cost[iBodExtReceive, iBodCentral]);
+                //Debug.Log("Body " + b + " import tax cost " + cost[iBodExtReceive, iBodCentral]);
 
                 cost[iBodCentral, iBodExtEmitter] = body[b].ImportExportTax[1];
-                Debug.Log("Body " + b + " import tax cost " + cost[iBodCentral, iBodExtEmitter]);
+                //Debug.Log("Body " + b + " import tax cost " + cost[iBodCentral, iBodExtEmitter]);
 
                 cost[iBodIntReceive, iBodCentral] = body[b].InternalTax[0];
-                Debug.Log("Body " + b + " import tax cost " + cost[iBodIntReceive, iBodCentral]);
+                //Debug.Log("Body " + b + " import tax cost " + cost[iBodIntReceive, iBodCentral]);
 
                 cost[iBodCentral, iBodIntEmitter] = body[b].InternalTax[1];
-                Debug.Log("Body " + b + " import tax cost " + cost[iBodCentral, iBodIntEmitter]);
+                //Debug.Log("Body " + b + " import tax cost " + cost[iBodCentral, iBodIntEmitter]);
                 #endregion
 
                 foreach (FacilityObject fo in bo.Facility)
@@ -364,7 +369,7 @@ public class Problem07Controller : MonoBehaviour
                     int iFacProduce = 2 + (3 * f) + (5 * nBod) + (5 * nSys);
 
                     #region Body-Facility
-                    Debug.Log("Body " + b + " <-> facility " + f + " cost " + 0.5f);
+                    //Debug.Log("Body " + b + " <-> facility " + f + " cost " + 0.5f);
 
                     cost[iBodIntEmitter, iFacReceive] = 0.5f;
                     cost[iFacEmitter, iBodIntReceive] = 0.5f;
@@ -372,14 +377,20 @@ public class Problem07Controller : MonoBehaviour
 
                     #region Intrafacility
                     cost[iFacReceive, iFacProduce] = facility[f].ImportExportTax[0];
-                    Debug.Log("Facility " + f + " import tax cost " + cost[iFacReceive, iFacProduce]);
+                    //Debug.Log("Facility " + f + " import tax cost " + cost[iFacReceive, iFacProduce]);
 
                     cost[iFacProduce, iFacEmitter] = facility[f].ImportExportTax[1];
-                    Debug.Log("Facility " + f + " export tax cost " + cost[iFacProduce, iFacEmitter]);
+                    //Debug.Log("Facility " + f + " export tax cost " + cost[iFacProduce, iFacEmitter]);
                     #endregion
                 }
             }
         }
+
+        for (int a = 0; a < cost.GetLength(0); a++)
+            for (int b = 0; b < cost.GetLength(1); b++)
+                if (cost[a, b] == 0)
+                    cost[a, b] = Mathf.Infinity;
+
         return cost;
     }
 
@@ -404,7 +415,7 @@ public class Problem07Controller : MonoBehaviour
                     int _iSysExtReceive = 0 + (5 * _s);
                     eCap = Mathf.Infinity;
 
-                    Debug.Log("System " + s + " (node " + iSysExtEmitter + ") to " + _s + " (" + _iSysExtReceive + ") capacity " + eCap);
+                    //Debug.Log("System " + s + " (node " + iSysExtEmitter + ") to " + _s + " (" + _iSysExtReceive + ") capacity " + eCap);
 
                     capacity[iSysExtEmitter, _iSysExtReceive] = eCap;
                 }
@@ -413,16 +424,16 @@ public class Problem07Controller : MonoBehaviour
 
             #region Intrasystem
             capacity[iSysExtReceive, iSysCentral] = system[s].ImportExportCapacity[0];
-            Debug.Log("System " + s + " import capacity " + capacity[iSysExtReceive, iSysCentral]);
+            //Debug.Log("System " + s + " import capacity " + capacity[iSysExtReceive, iSysCentral]);
 
             capacity[iSysCentral, iSysExtEmitter] = system[s].ImportExportCapacity[1];
-            Debug.Log("System " + s + " export capacity " + capacity[iSysCentral, iSysExtEmitter]);
+            //Debug.Log("System " + s + " export capacity " + capacity[iSysCentral, iSysExtEmitter]);
 
             capacity[iSysIntReceive, iSysCentral] = system[s].InternalCapacity[0];
-            Debug.Log("System " + s + " inflow capacity " + capacity[iSysIntReceive, iSysCentral]);
+            //Debug.Log("System " + s + " inflow capacity " + capacity[iSysIntReceive, iSysCentral]);
 
             capacity[iSysCentral, iSysIntEmitter] = system[s].InternalCapacity[1];
-            Debug.Log("System " + s + " outflow capacity " + capacity[iSysCentral, iSysIntEmitter]);
+            //Debug.Log("System " + s + " outflow capacity " + capacity[iSysCentral, iSysIntEmitter]);
             #endregion
 
             foreach (BodyObject bo in system[s].Body)
@@ -436,7 +447,7 @@ public class Problem07Controller : MonoBehaviour
                 int iBodIntEmitter = 3 + (5 * b) + (5 * nSys);
 
                 #region System-Body
-                Debug.Log("System " + s + " <-> body " + b + " capacity " + Mathf.Infinity);
+                //Debug.Log("System " + s + " <-> body " + b + " capacity " + Mathf.Infinity);
 
                 capacity[iSysIntEmitter, iBodExtReceive] = Mathf.Infinity;
                 capacity[iBodIntEmitter, iSysIntReceive] = Mathf.Infinity;
@@ -444,16 +455,16 @@ public class Problem07Controller : MonoBehaviour
 
                 #region Intrabody
                 capacity[iBodExtReceive, iBodCentral] = body[b].ImportExportCapacity[0];
-                Debug.Log("Body " + b + " import capacity " + capacity[iBodExtReceive, iBodCentral]);
+                //Debug.Log("Body " + b + " import capacity " + capacity[iBodExtReceive, iBodCentral]);
 
                 capacity[iBodCentral, iBodExtEmitter] = body[b].ImportExportCapacity[1];
-                Debug.Log("Body " + b + " import capacity " + capacity[iBodCentral, iBodExtEmitter]);
+                //Debug.Log("Body " + b + " import capacity " + capacity[iBodCentral, iBodExtEmitter]);
 
                 capacity[iBodIntReceive, iBodCentral] = body[b].InternalCapacity[0];
-                Debug.Log("Body " + b + " import capacity " + capacity[iBodIntReceive, iBodCentral]);
+                //Debug.Log("Body " + b + " import capacity " + capacity[iBodIntReceive, iBodCentral]);
 
                 capacity[iBodCentral, iBodIntEmitter] = body[b].InternalCapacity[1];
-                Debug.Log("Body " + b + " import capacity " + capacity[iBodCentral, iBodIntEmitter]);
+                //Debug.Log("Body " + b + " import capacity " + capacity[iBodCentral, iBodIntEmitter]);
                 #endregion
 
                 foreach (FacilityObject fo in bo.Facility)
@@ -465,7 +476,7 @@ public class Problem07Controller : MonoBehaviour
                     int iFacProduce = 2 + (3 * f) + (5 * nBod) + (5 * nSys);
 
                     #region Body-Facility
-                    Debug.Log("Body " + b + " <-> facility " + f + " capacity " + Mathf.Infinity);
+                    //Debug.Log("Body " + b + " <-> facility " + f + " capacity " + Mathf.Infinity);
 
                     capacity[iBodIntEmitter, iFacReceive] = Mathf.Infinity;
                     capacity[iFacEmitter, iBodIntReceive] = Mathf.Infinity;
@@ -473,10 +484,10 @@ public class Problem07Controller : MonoBehaviour
 
                     #region Intrafacility
                     capacity[iFacReceive, iFacProduce] = facility[f].ImportExportCapacity[0];
-                    Debug.Log("Facility " + f + " import capacity " + capacity[iFacReceive, iFacProduce]);
+                    //Debug.Log("Facility " + f + " import capacity " + capacity[iFacReceive, iFacProduce]);
 
                     capacity[iFacProduce, iFacEmitter] = facility[f].ImportExportCapacity[1];
-                    Debug.Log("Facility " + f + " export capacity " + capacity[iFacProduce, iFacEmitter]);
+                    //Debug.Log("Facility " + f + " export capacity " + capacity[iFacProduce, iFacEmitter]);
                     #endregion
                 }
             }
@@ -512,6 +523,15 @@ public class Problem07Controller : MonoBehaviour
     {
         int i = -1;
         int[,] edgeind = new int[cost.GetLength(0), cost.GetLength(1)];
+        for (int n = 0; n < cost.GetLength(0); n++)
+        {
+            for (int _n = 0; _n < cost.GetLength(1); _n++)
+            {
+                if (cost[n, _n] != Mathf.Infinity)
+                {
 
+                }
+            }
+        }
     }
 }
