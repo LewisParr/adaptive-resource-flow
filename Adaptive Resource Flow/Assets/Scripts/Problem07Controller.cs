@@ -430,17 +430,17 @@ public class Problem07Controller : MonoBehaviour
 
         float[,] cost = BuildEdgeCostMatrix(nNode, nSys, nBod);
 
-        Debug.Log("----- COST -----");
-        for (int row = 0; row < cost.GetLength(0); row++)
-        {
-            string s = "";
-            for (int col = 0; col < cost.GetLength(1); col++)
-            {
-                s += cost[row, col];
-                s += "; ";
-            }
-            Debug.Log(s);
-        }
+        //Debug.Log("----- COST -----");
+        //for (int row = 0; row < cost.GetLength(0); row++)
+        //{
+        //    string s = "";
+        //    for (int col = 0; col < cost.GetLength(1); col++)
+        //    {
+        //        s += cost[row, col];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
 
         float[,] capacity = BuildEdgeCapacityMatrix(nNode, nSys, nBod);
 
@@ -458,10 +458,26 @@ public class Problem07Controller : MonoBehaviour
         {
             for (int n = 0; n < nNode; n++)
             {
-                if (cost[n, _n] != Mathf.Infinity) augmat[n, (r * numNonInf) + edgeind[n, _n]] = +1;
-                if (cost[_n, n] != Mathf.Infinity) augmat[n, (r * numNonInf) + edgeind[_n, n]] = -1;
+                for (int _n = 0; _n < nNode; _n++)
+                {
+                    if (cost[n, _n] != Mathf.Infinity) augmat[n, (r * nNonInf) + edgeind[n, _n]] = +1;
+                    if (cost[_n, n] != Mathf.Infinity) augmat[n, (r * nNonInf) + edgeind[_n, n]] = -1;
+                }
+
+                // b-value
+                if (n >= (5 * nSys) + (5 * nBod)) // If this is a facility node
+                {
+                    if ((n - (5 * nSys) - (5 * nBod)) % 2 == 0) // If this is a production node
+                    {
+                        augmat[n, nCol - 1] = facility[((n - (5 * nSys) - (5 * nBod)) - 2) / 3].Production[r];
+                    }
+                    else augmat[n, nCol - 1] = 0;
+                }
+                else augmat[n, nCol - 1] = 0;
             }
         }
+
+
     }
 
     private float[,] BuildEdgeCostMatrix(int nNode, int nSys, int nBod)
