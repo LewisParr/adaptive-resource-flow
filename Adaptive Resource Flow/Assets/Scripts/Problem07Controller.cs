@@ -56,6 +56,7 @@ public class Problem07Controller : MonoBehaviour
         float[] imextax;
         float[] prod;
 
+        // System 0
         presetType.Add(ElementType.System);
         presetPos.Add(new Vector3(0, 0, 0));
         intcap = new float[2]; intcap[0] = 1f; intcap[1] = 1f;
@@ -69,8 +70,85 @@ public class Problem07Controller : MonoBehaviour
         presetThruCap.Add(1f);
         presetThruTax.Add(0.1f);
         presetParent.Add(-1);
-        //prod = new float[3]; prod[0] = -0.25f; prod[1] = -0.35f; prod[2] = -0.45f;
         presetProd.Add(null);
+
+        // Body 0
+        presetType.Add(ElementType.Body);
+        presetPos.Add(new Vector3(0, 0, 0));
+        intcap = new float[2]; intcap[0] = 1f; intcap[1] = 1f;
+        presetIntCap.Add(intcap);
+        inttax = new float[2]; inttax[0] = 0.1f; inttax[1] = 0.1f;
+        presetIntTax.Add(inttax);
+        imexcap = new float[2]; imexcap[0] = 1f; imexcap[1] = 1f;
+        presetImExCap.Add(imexcap);
+        imextax = new float[2]; imextax[0] = 0.1f; imextax[1] = 0.1f;
+        presetImExTax.Add(imextax);
+        presetThruCap.Add(1f);
+        presetThruTax.Add(0.1f);
+        presetParent.Add(0);
+        presetProd.Add(null);
+
+        // Facility 0
+        presetType.Add(ElementType.Facility);
+        presetPos.Add(new Vector3(0, 0, 0));
+        presetIntCap.Add(null);
+        presetIntTax.Add(null);
+        imexcap = new float[2]; imexcap[0] = 1f; imexcap[1] = 1f;
+        presetImExCap.Add(imexcap);
+        imextax = new float[2]; imextax[0] = 0.1f; imextax[1] = 0.1f;
+        presetImExTax.Add(imextax);
+        presetThruCap.Add(1f);
+        presetThruTax.Add(0.1f);
+        presetParent.Add(0);
+        prod = new float[3]; prod[0] = -0.25f; prod[1] = -0.50f; prod[2] = -0.75f;
+        presetProd.Add(prod);
+
+        // System 1
+        presetType.Add(ElementType.System);
+        presetPos.Add(new Vector3(0, 0, 7));
+        intcap = new float[2]; intcap[0] = 1f; intcap[1] = 1f;
+        presetIntCap.Add(intcap);
+        inttax = new float[2]; inttax[0] = 0.1f; inttax[1] = 0.1f;
+        presetIntTax.Add(inttax);
+        imexcap = new float[2]; imexcap[0] = 1f; imexcap[1] = 1f;
+        presetImExCap.Add(imexcap);
+        imextax = new float[2]; imextax[0] = 0.1f; imextax[1] = 0.1f;
+        presetImExTax.Add(imextax);
+        presetThruCap.Add(1f);
+        presetThruTax.Add(0.1f);
+        presetParent.Add(-1);
+        presetProd.Add(null);
+
+        // Body 1
+        presetType.Add(ElementType.Body);
+        presetPos.Add(new Vector3(0, 0, 7));
+        intcap = new float[2]; intcap[0] = 1f; intcap[1] = 1f;
+        presetIntCap.Add(intcap);
+        inttax = new float[2]; inttax[0] = 0.1f; inttax[1] = 0.1f;
+        presetIntTax.Add(inttax);
+        imexcap = new float[2]; imexcap[0] = 1f; imexcap[1] = 1f;
+        presetImExCap.Add(imexcap);
+        imextax = new float[2]; imextax[0] = 0.1f; imextax[1] = 0.1f;
+        presetImExTax.Add(imextax);
+        presetThruCap.Add(1f);
+        presetThruTax.Add(0.1f);
+        presetParent.Add(1);
+        presetProd.Add(null);
+
+        // Facility 1
+        presetType.Add(ElementType.Facility);
+        presetPos.Add(new Vector3(0, 0, 7));
+        presetIntCap.Add(null);
+        presetIntTax.Add(null);
+        imexcap = new float[2]; imexcap[0] = 1f; imexcap[1] = 1f;
+        presetImExCap.Add(imexcap);
+        imextax = new float[2]; imextax[0] = 0.1f; imextax[1] = 0.1f;
+        presetImExTax.Add(imextax);
+        presetThruCap.Add(1f);
+        presetThruTax.Add(0.1f);
+        presetParent.Add(1);
+        prod = new float[3]; prod[0] = +0.25f; prod[1] = +0.50f; prod[2] = +0.75f;
+        presetProd.Add(prod);
     }
 
     private void Update()
@@ -82,7 +160,7 @@ public class Problem07Controller : MonoBehaviour
             element++;
 
             AddElement(element);
-            UpdateResourceFlows();
+            if (element == presetPos.Count) UpdateResourceFlows();
         }
     }
 
@@ -152,7 +230,7 @@ public class Problem07Controller : MonoBehaviour
             else if (elementType == ElementType.Facility) AddFacility(); // or a facility, ...
             else { };                                                    // or nothing at all. 
         }
-        else
+        else if (element < presetPos.Count)
         {
             Debug.Log("Inserting element " + element);
 
@@ -314,6 +392,8 @@ public class Problem07Controller : MonoBehaviour
          * Update the flow of resources through the world.
          */
 
+        Debug.Log("Updating resource flows...");
+
         if (system.Count > 0 && body.Count > 0 && facility.Count > 0)
         {
             BuildAugmentedMatrix();
@@ -349,13 +429,39 @@ public class Problem07Controller : MonoBehaviour
         int nCol = nEdge + 1;
 
         float[,] cost = BuildEdgeCostMatrix(nNode, nSys, nBod);
+
+        Debug.Log("----- COST -----");
+        for (int row = 0; row < cost.GetLength(0); row++)
+        {
+            string s = "";
+            for (int col = 0; col < cost.GetLength(1); col++)
+            {
+                s += cost[row, col];
+                s += "; ";
+            }
+            Debug.Log(s);
+        }
+
         float[,] capacity = BuildEdgeCapacityMatrix(nNode, nSys, nBod);
 
         int[,] edgeind = BuildEdgeIndexMatrix(cost);
 
+        int nNonInf = 0;
+        for (int a = 0; a < cost.GetLength(0); a++)
+            for (int b = 0; b < cost.GetLength(1); b++)
+                if (cost[a, b] != Mathf.Infinity) nNonInf++;
+
         float[,] augmat = new float[nRow, nCol]; // Instantiate augmented matrix
 
-
+        // Flow conservation values
+        for (int r = 0; r < 3; r++)
+        {
+            for (int n = 0; n < nNode; n++)
+            {
+                if (cost[n, _n] != Mathf.Infinity) augmat[n, (r * numNonInf) + edgeind[n, _n]] = +1;
+                if (cost[_n, n] != Mathf.Infinity) augmat[n, (r * numNonInf) + edgeind[_n, n]] = -1;
+            }
+        }
     }
 
     private float[,] BuildEdgeCostMatrix(int nNode, int nSys, int nBod)
