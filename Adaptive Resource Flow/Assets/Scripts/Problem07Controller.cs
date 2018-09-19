@@ -444,12 +444,38 @@ public class Problem07Controller : MonoBehaviour
 
         float[,] capacity = BuildEdgeCapacityMatrix(nNode, nSys, nBod);
 
+        //Debug.Log("----- CAPACITY -----");
+        //for (int row = 0; row < capacity.GetLength(0); row++)
+        //{
+        //    string s = "";
+        //    for (int col = 0; col < capacity.GetLength(1); col++)
+        //    {
+        //        s += capacity[row, col];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
+
         int[,] edgeind = BuildEdgeIndexMatrix(cost);
+
+        //Debug.Log("----- EDGE INDEX -----");
+        //for (int row = 0; row < edgeind.GetLength(0); row++)
+        //{
+        //    string s = "";
+        //    for (int col = 0; col < edgeind.GetLength(1); col++)
+        //    {
+        //        s += edgeind[row, col];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
 
         int nNonInf = 0;
         for (int a = 0; a < cost.GetLength(0); a++)
             for (int b = 0; b < cost.GetLength(1); b++)
                 if (cost[a, b] != Mathf.Infinity) nNonInf++;
+
+        //Debug.Log("Number of non-infinite cost edges: " + nNonInf);
 
         float[,] augmat = new float[nRow, nCol]; // Instantiate augmented matrix
 
@@ -477,7 +503,44 @@ public class Problem07Controller : MonoBehaviour
             }
         }
 
+        // Edge capacity values
+        int iCapCon = -1;
+        for (int e = 0; e < nEdge; e++)
+        {
+            int[] nodes = EdgeNodesFromIndex(edgeind, Mathf.FloorToInt(e / nRes));
 
+            if (capacity[nodes[0], nodes[1]] != Mathf.Infinity) // If capacity is constrained
+            {
+                iCapCon++;
+
+                augmat[iCapCon + nNode, e] = +1; // Identify edge
+                augmat[iCapCon + nNode, nCol - 1] = capacity[nodes[0], nodes[1]]; // b-value
+            }
+
+            augmat[nRow - 1, e] = cost[nodes[0], nodes[1]];
+        }
+
+        Debug.Log("Nodes: " + nNode);
+
+        Debug.Log("Cost (0, 0): " + cost[0, 0]);
+
+        Debug.Log("----- AUGMENTED MATRIX -----");
+        for (int row = 0; row < augmat.GetLength(0); row++)
+        {
+            string s = "";
+            for (int col = 0; col < augmat.GetLength(1); col++)
+            {
+                s += augmat[row, col];
+                s += "; ";
+            }
+            Debug.Log(s);
+        }
+
+        // Process the minimisation problem
+        //float[] output = Minimise(augmat);
+
+        // Interpret the result
+        // ...
     }
 
     private float[,] BuildEdgeCostMatrix(int nNode, int nSys, int nBod)
@@ -536,13 +599,13 @@ public class Problem07Controller : MonoBehaviour
                 int iBodExtEmitter = 1 + (5 * b) + (5 * nSys);
                 int iBodCentral = 2 + (5 * b) + (5 * nSys);
                 int iBodIntReceive = 3 + (5 * b) + (5 * nSys);
-                int iBodIntEmitter = 3 + (5 * b) + (5 * nSys);
+                int iBodIntEmitter = 4 + (5 * b) + (5 * nSys);
 
                 #region System-Body
                 //Debug.Log("System " + s + " <-> body " + b + " cost " + 1f);
 
                 cost[iSysIntEmitter, iBodExtReceive] = 1f;
-                cost[iBodIntEmitter, iSysIntReceive] = 1f;
+                cost[iBodExtEmitter, iSysIntReceive] = 1f;
                 #endregion
 
                 #region Intrabody
@@ -643,13 +706,13 @@ public class Problem07Controller : MonoBehaviour
                 int iBodExtEmitter = 1 + (5 * b) + (5 * nSys);
                 int iBodCentral = 2 + (5 * b) + (5 * nSys);
                 int iBodIntReceive = 3 + (5 * b) + (5 * nSys);
-                int iBodIntEmitter = 3 + (5 * b) + (5 * nSys);
+                int iBodIntEmitter = 4 + (5 * b) + (5 * nSys);
 
                 #region System-Body
                 //Debug.Log("System " + s + " <-> body " + b + " capacity " + Mathf.Infinity);
 
                 capacity[iSysIntEmitter, iBodExtReceive] = Mathf.Infinity;
-                capacity[iBodIntEmitter, iSysIntReceive] = Mathf.Infinity;
+                capacity[iBodExtEmitter, iSysIntReceive] = Mathf.Infinity;
                 #endregion
 
                 #region Intrabody
@@ -738,5 +801,193 @@ public class Problem07Controller : MonoBehaviour
             }
         }
         return edgeind;
+    }
+
+    private static int[] EdgeNodesFromIndex(int[,] edgeind, int e)
+    {
+        for (int a = 0; a < edgeind.GetLength(0); a++)
+        {
+            for (int b = 0; b < edgeind.GetLength(1); b++)
+            {
+                if (edgeind[a, b] == e)
+                {
+                    int[] nodes = new int[2];
+                    nodes[0] = a;
+                    nodes[1] = b;
+                    return nodes;
+                }
+            }
+        }
+        Debug.LogError("Edge index not found.");
+        return null;
+    }
+
+    private static float[] Minimise(float[,] augmat)
+    {
+        // Form the transpose of the augmented matrix
+        float[,] _augmat = Transpose(augmat);
+
+        // Form the dual maximisation problem
+        float[,] tableau = InsertSlackVariables(_augmat);
+
+        Debug.Log("Number of tableau rows: " + tableau.GetLength(0));
+        Debug.Log("Number of tableau columns: " + tableau.GetLength(1));
+
+        // Process the maximisation problem
+        float[] output = Maximise(tableau, true);
+
+        // Return the result
+        return output;
+    }
+
+    private static float[,] Transpose(float[,] augmat)
+    {
+        int numRow = augmat.GetLength(1);
+        int numCol = augmat.GetLength(0);
+        float[,] transpose = new float[numRow, numCol];
+        for (int r = 0; r < numRow; r++)
+            for (int c = 0; c < numCol; c++)
+                transpose[r, c] = augmat[c, r];
+        return transpose;
+    }
+
+    private static float[,] InsertSlackVariables(float[,] augmat)
+    {
+        int numRow = augmat.GetLength(0);
+        int numCol = augmat.GetLength(1) + (numRow - 1);
+        float[,] tableau = new float[numRow, numCol];
+
+        // Insert matrix values (except b-values)
+        for (int r = 0; r < numRow; r++)
+            for (int c = 0; c < augmat.GetLength(1) - 1; c++)
+                tableau[r, c] = augmat[r, c];
+
+        // Insert b-values
+        for (int r = 0; r < numRow; r++)
+            tableau[r, numCol - 1] = augmat[r, augmat.GetLength(1) - 1];
+
+        // Insert slack values
+        for (int r = 0; r < numRow - 1; r++)
+            tableau[r, r + augmat.GetLength(1) - 1] = 1f;
+
+        // Return the completed tableau
+        return tableau;
+    }
+
+    private static float[] Maximise(float[,] tableau, bool dual = false)
+    {
+        // Run the simplex method
+        tableau = SimplexMethod(tableau);
+
+        if (!dual)
+        {
+            // Read results normally
+            Debug.LogError("NOT IMPLEMENTED");
+            return null;
+        }
+        else
+        {
+            // Return the bottom row
+            float[] output = new float[tableau.GetLength(1)];
+            for (int c = 0; c < tableau.GetLength(1); c++)
+                output[c] = tableau[tableau.GetLength(0) - 1, c];
+            return output;
+        }
+    }
+
+    private static float[,] SimplexMethod(float[,] tableau)
+    {
+        int iterCount = 0;
+        bool terminate = false;
+        while (!terminate)
+        {
+            iterCount++;
+
+            // Locate the most negative entry in the bottom row
+            int enteringColumn = SelectEntering(tableau);
+
+            if (enteringColumn != -1)
+            {
+                // Locate the smallest nonnegative ratio
+                int departingRow = SelectDeparting(tableau, enteringColumn);
+
+                if (departingRow != -1)
+                {
+                    // Set pivot to 1 all others to zero
+                    tableau = Pivot(tableau, enteringColumn, departingRow);
+                }
+                else terminate = true;
+            }
+            else terminate = true;
+
+            // !!!
+            //if (iterCount == 1000) terminate = true;
+
+            Debug.Log("Simplex Method pass " + iterCount + " completed at: " + Time.realtimeSinceStartup);
+        }
+        return tableau;
+    }
+
+    private static int SelectEntering(float[,] tableau)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+        float minVal = float.MaxValue;
+        int enteringColumn = 0;
+        for (int c = 0; c < numCol; c++)
+            if (tableau[numRow - 1, c] < minVal)
+            {
+                minVal = tableau[numRow - 1, c];
+                enteringColumn = c;
+            }
+        if (!(minVal < 0)) return -1;
+        else
+        {
+            if (minVal == float.MaxValue) return -1;
+            else return enteringColumn;
+        }
+    }
+
+    private static int SelectDeparting(float[,] tableau, int enteringColumn)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+        float minRatio = float.MaxValue;
+        int departingRow = 0;
+        for (int r = 0; r < numRow - 1; r++)
+        {
+            float ratio = tableau[r, numCol - 1] / tableau[r, enteringColumn];
+            if (!(ratio < 0))
+                if (ratio < minRatio)
+                {
+                    minRatio = ratio;
+                    departingRow = r;
+                }
+        }
+        if (minRatio == float.MaxValue) return -1;
+        else return departingRow;
+    }
+
+    private static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
+    {
+        int numRow = tableau.GetLength(0);
+        int numCol = tableau.GetLength(1);
+
+        // Scale departing row so that pivot value is 1
+        float scaleValue = tableau[departingRow, enteringColumn];
+        for (int c = 0; c < numCol; c++)
+            tableau[departingRow, c] = tableau[departingRow, c] / scaleValue;
+
+        // Set other values in entering column to 0
+        for (int r = 0; r < numRow; r++)
+            if (r != departingRow)
+            {
+                float coefficient = -tableau[r, enteringColumn];
+                for (int c = 0; c < numCol; c++)
+                    tableau[r, c] = (coefficient * tableau[departingRow, c]) + tableau[r, c];
+            }
+
+        // Return the new tableau
+        return tableau;
     }
 }
