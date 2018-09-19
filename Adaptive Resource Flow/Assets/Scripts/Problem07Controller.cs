@@ -424,6 +424,7 @@ public class Problem07Controller : MonoBehaviour
 
         int nFlowConstr = nNode * nRes;
         int nCapConstr = (nIntraSysEdge + nIntraBodEdge + nIntraFacEdge) * nRes;
+        //int nCapConstr = nEdge;
 
         int nRow = nFlowConstr + nCapConstr + 1;
         int nCol = nEdge + 1;
@@ -915,6 +916,7 @@ public class Problem07Controller : MonoBehaviour
 
                 if (departingRow != -1)
                 {
+                    Debug.Log("Entering column: " + enteringColumn + "; Departing row: " + departingRow);
                     // Set pivot to 1 all others to zero
                     tableau = Pivot(tableau, enteringColumn, departingRow);
                 }
@@ -923,7 +925,7 @@ public class Problem07Controller : MonoBehaviour
             else terminate = true;
 
             // !!!
-            //if (iterCount == 1000) terminate = true;
+            if (iterCount == 1000) terminate = true;
 
             Debug.Log("Simplex Method pass " + iterCount + " completed at: " + Time.realtimeSinceStartup);
         }
@@ -936,17 +938,28 @@ public class Problem07Controller : MonoBehaviour
         int numCol = tableau.GetLength(1);
         float minVal = float.MaxValue;
         int enteringColumn = 0;
+
+        List<float> values = new List<float>();
+
         for (int c = 0; c < numCol; c++)
+        {
+            values.Add(tableau[numRow - 1, c]);
+
             if (tableau[numRow - 1, c] < minVal)
             {
                 minVal = tableau[numRow - 1, c];
                 enteringColumn = c;
             }
-        if (!(minVal < 0)) return -1;
+        }
+
+        string s = " chosen from (col): ";
+        foreach (float value in values) { s += value; s += "; "; }
+
+        if (!(minVal < 0)) { Debug.Log("None" + s); return -1; }
         else
         {
-            if (minVal == float.MaxValue) return -1;
-            else return enteringColumn;
+            if (minVal == float.MaxValue) { Debug.Log("None" + s); return -1; }
+            else { Debug.Log(tableau[numRow - 1, enteringColumn] + " (" + enteringColumn + ")" + s); return enteringColumn; }
         }
     }
 
@@ -956,9 +969,15 @@ public class Problem07Controller : MonoBehaviour
         int numCol = tableau.GetLength(1);
         float minRatio = float.MaxValue;
         int departingRow = 0;
+
+        List<float> values = new List<float>();
+
         for (int r = 0; r < numRow - 1; r++)
         {
             float ratio = tableau[r, numCol - 1] / tableau[r, enteringColumn];
+
+            values.Add(ratio);
+
             if (!(ratio < 0))
                 if (ratio < minRatio)
                 {
@@ -966,8 +985,16 @@ public class Problem07Controller : MonoBehaviour
                     departingRow = r;
                 }
         }
-        if (minRatio == float.MaxValue) return -1;
-        else return departingRow;
+
+        string s = " chosen from (row): ";
+        foreach (float value in values) { s += value; s += "; "; }
+
+        if (!(minRatio > 0)) { Debug.Log("None" + s); return -1; }
+        else
+        {
+            if (minRatio == float.MaxValue) { Debug.Log("None" + s); return -1; }
+            else { Debug.Log(values[departingRow] + " (" + departingRow + ")" + s); return departingRow; }
+        }
     }
 
     private static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
