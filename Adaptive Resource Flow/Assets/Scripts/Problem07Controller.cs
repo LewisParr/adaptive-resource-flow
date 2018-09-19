@@ -425,7 +425,7 @@ public class Problem07Controller : MonoBehaviour
         int nFlowConstr = nNode * nRes;
         int nCapConstr = (nIntraSysEdge + nIntraBodEdge + nIntraFacEdge) * nRes;
 
-        int nRow = nFlowConstr + nCapConstr;
+        int nRow = nFlowConstr + nCapConstr + 1;
         int nCol = nEdge + 1;
 
         float[,] cost = BuildEdgeCostMatrix(nNode, nSys, nBod);
@@ -486,20 +486,22 @@ public class Problem07Controller : MonoBehaviour
             {
                 for (int _n = 0; _n < nNode; _n++)
                 {
-                    if (cost[n, _n] != Mathf.Infinity) augmat[n, (r * nNonInf) + edgeind[n, _n]] = +1;
-                    if (cost[_n, n] != Mathf.Infinity) augmat[n, (r * nNonInf) + edgeind[_n, n]] = -1;
+                    if (cost[n, _n] != Mathf.Infinity) augmat[(r * nNode) + n, (r * nNonInf) + edgeind[n, _n]] = +1;
+                    if (cost[_n, n] != Mathf.Infinity) augmat[(r * nNode) + n, (r * nNonInf) + edgeind[_n, n]] = -1;
                 }
 
                 // b-value
                 if (n >= (5 * nSys) + (5 * nBod)) // If this is a facility node
                 {
-                    if ((n - (5 * nSys) - (5 * nBod)) % 2 == 0) // If this is a production node
+                    int a = n - (5 * nSys) - (5 * nBod);
+                    int b = a + 1;
+                    if ((b / 3f) % 1 == 0) // If this is a production node
                     {
-                        augmat[n, nCol - 1] = facility[((n - (5 * nSys) - (5 * nBod)) - 2) / 3].Production[r];
+                        augmat[(r * nNode) + n, nCol - 1] = facility[(b / 3) - 1].Production[r];
                     }
-                    else augmat[n, nCol - 1] = 0;
+                    else augmat[(r * nNode) + n, nCol - 1] = 0;
                 }
-                else augmat[n, nCol - 1] = 0;
+                else augmat[(r * nNode) + n, nCol - 1] = 0;
             }
         }
 
@@ -513,8 +515,8 @@ public class Problem07Controller : MonoBehaviour
             {
                 iCapCon++;
 
-                augmat[iCapCon + nNode, e] = +1; // Identify edge
-                augmat[iCapCon + nNode, nCol - 1] = capacity[nodes[0], nodes[1]]; // b-value
+                augmat[iCapCon + (nNode * nRes), e] = +1; // Identify edge
+                augmat[iCapCon + (nNode * nRes), nCol - 1] = capacity[nodes[0], nodes[1]]; // b-value
             }
 
             augmat[nRow - 1, e] = cost[nodes[0], nodes[1]];
@@ -537,7 +539,7 @@ public class Problem07Controller : MonoBehaviour
         }
 
         // Process the minimisation problem
-        //float[] output = Minimise(augmat);
+        float[] output = Minimise(augmat);
 
         // Interpret the result
         // ...
