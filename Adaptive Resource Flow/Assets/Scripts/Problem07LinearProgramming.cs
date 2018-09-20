@@ -64,4 +64,57 @@ public static class Problem07LinearProgramming
         return tableau;
     }
 
+    private static void SimplexMethod(float[,] tableau)
+    {
+        bool terminate = false;
+
+        while (!terminate)
+        {
+            int enteringColumn = SelectEntering(tableau);
+
+            if (enteringColumn >= 0)
+            {
+                int departingRow = SelectDeparting(tableau);
+            }
+        }
+    }
+
+    private static int SelectEntering(float[,] tableau)
+    {
+        int nRow = tableau.GetLength(0);
+        int nCol = tableau.GetLength(1);
+
+        float minVal = float.MaxValue;
+        int enteringColumn;
+
+        for (int c = 0; c < nCol; c++)
+            if (tableau[nRow - 1, c] < minVal)
+            {
+                minVal = tableau[nRow - 1, c];
+                enteringColumn = c;
+            }
+
+        if (minVal < 0)
+        {
+            if (minVal == float.MaxValue)
+            {
+                Debug.Log("No minimum value found for entering column.");
+                return -2;
+            }
+            else
+            {
+                return enteringColumn;
+            }
+        }
+        else
+        {
+            Debug.Log("No negative values for entering column.");
+            return -1;
+        }
+    }
+
+    private static int SelectDeparting(float[,] tableau)
+    {
+
+    }
 }
