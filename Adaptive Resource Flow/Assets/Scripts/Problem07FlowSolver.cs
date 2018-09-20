@@ -36,6 +36,7 @@ public class Problem07FlowSolver
     int nRow;
     int nCol;
     float[,] augMat;
+    float[,] tableau;
     #endregion
 
     #region EdgeData
@@ -60,8 +61,8 @@ public class Problem07FlowSolver
         CollectEdgeData(system, body, facility);
         IndexEdges();
         BuildAugmentedMatrix(facility);
-        float[,] finalTableau = Problem07LinearProgramming.Minimise(augMat);
-        // ...
+        tableau = Problem07LinearProgramming.Minimise(augMat);
+        ReadTableau();
     }
 
     private void CountElements(List<SystemObject> system, List<BodyObject> body, List<FacilityObject> facility)
@@ -226,7 +227,7 @@ public class Problem07FlowSolver
 
     private void IndexEdges()
     {
-        int[,] edgeIndex = new int[nNode, nNode];
+        edgeIndex = new int[nNode, nNode];
 
         int i = -1;
         for (int n = 0; n < edgeCost.GetLength(0); n++)
@@ -278,7 +279,7 @@ public class Problem07FlowSolver
         int iCapCon = -1;
         for (int e = 0; e < nEdge; e++)
         {
-            int[] nodes = EdgeNodesFromIndex(e);
+            int[] nodes = EdgeNodesFromIndex(e - (Mathf.FloorToInt(e / nRes) * nRes));
 
             if (edgeCapacity[nodes[0], nodes[1]] != Mathf.Infinity)
             {
@@ -304,5 +305,29 @@ public class Problem07FlowSolver
                 }
         Debug.LogError("Edge index not found.");
         return null;
+    }
+
+    private void ReadTableau()
+    {
+        for (int c = 0; c < tableau.GetLength(1); c++)
+        {
+            float nZero = 0;
+            float nOne = 0;
+            float nOther = 0;
+
+            for (int r = 0; r < tableau.GetLength(0); r++)
+            {
+                float thisVal = tableau[r, c];
+
+                if (thisVal == 0) nZero++;
+                else if (thisVal == 1) nOne++;
+                else nOther++;
+            }
+
+            if (nOne == 1 && nOther == 0)
+            {
+                Debug.Log("Col " + c + " is part of the solution.");
+            }
+        }
     }
 }
