@@ -403,7 +403,7 @@ public class Problem07Controller : MonoBehaviour
 
         if (system.Count > 0 && body.Count > 0 && facility.Count > 0)
         {
-            flowSolver.Solve();
+            flowSolver.Solve(system, body, facility);
         }
     }
 

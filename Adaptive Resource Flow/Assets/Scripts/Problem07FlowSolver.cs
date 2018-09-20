@@ -59,7 +59,9 @@ public class Problem07FlowSolver
         CountElements(system, body, facility);
         CollectEdgeData(system, body, facility);
         IndexEdges();
-        BuildAugmentedMatrix();
+        BuildAugmentedMatrix(facility);
+        float[,] finalTableau = Problem07LinearProgramming.Minimise(augMat);
+        // ...
     }
 
     private void CountElements(List<SystemObject> system, List<BodyObject> body, List<FacilityObject> facility)
@@ -288,10 +290,6 @@ public class Problem07FlowSolver
             augMat[nRow - 1, e] = edgeCost[nodes[0], nodes[1]];
         }
         #endregion
-
-        float[,] finalTableau = Problem07LinearProgramming.Minimise(augMat);
-
-        // ...
     }
 
     private int[] EdgeNodesFromIndex(int e)
