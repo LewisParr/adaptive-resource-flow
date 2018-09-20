@@ -37,6 +37,10 @@ public class Problem07FlowSolver
     int nCol;
     #endregion
 
+    #region EdgeData
+    float[,] edgeCost;
+    #endregion
+
     public Problem07FlowSolver()
     {
 
@@ -49,6 +53,7 @@ public class Problem07FlowSolver
          */
 
         CountElements(system, body, facility);
+        CollectEdgeData(system, body, facility);
         BuildAugmentedMatrix();
     }
 
@@ -81,6 +86,119 @@ public class Problem07FlowSolver
         nRow = nFlowConstr + nCapConstr + 1;
         nCol = nEdge + 1;
         #endregion
+    }
+
+    private void CollectEdgeData(List<SystemObject> system, List<BodyObject> body, List<FacilityObject> facility)
+    {
+        edgeCost = new float[nNode, nNode];
+
+        for (int s = 0; s < nSys; s++)
+        {
+            #region IdentifySystemNodes
+            int iSysExtRec = 0 + (5 * s); // System's external receiver node
+            int iSysExtEmi = 1 + (5 * s); // System's external emitter node
+            int iSysCen = 2 + (5 * s); // System's central node
+            int iSysIntRec = 3 + (5 * s); // System's internal receiver node
+            int iSysIntEmi = 4 + (5 * s); // System's internal emitter node
+            #endregion
+
+            for (int _s = 0; _s < nSys; _s++)
+            {
+                #region IntersystemEdges
+                int _iSysExtRec = 0 + (5 * _s);
+                if (s != _s)
+                {
+                    edgeCost[iSysExtEmi, _iSysExtRec] = Mathf.Pow((system[s].Position - system[_s].Position).magnitude, 1.1f);
+                }
+                else
+                {
+                    edgeCost[iSysExtEmi, _iSysExtRec] = Mathf.Infinity;
+                }
+                #endregion
+            }
+
+            #region IntrasystemEdges
+            edgeCost[iSysExtRec, iSysCen] = system[s].ImportExportTax[0];
+            edgeCost[iSysCen, iSysExtEmi] = system[s].ImportExportTax[1];
+            edgeCost[iSysIntRec, iSysCen] = system[s].InternalTax[0];
+            edgeCost[iSysCen, iSysIntEmi] = system[s].InternalTax[1];
+            #endregion
+
+            foreach (BodyObject bo in system[s].Body)
+            {
+                int b = FindBodyIndex(bo, body);
+
+                #region IdentifyBodyNodes
+                int iBodExtRec = 0 + (5 * b) + (5 * nSys);
+                int iBodExtEmi = 1 + (5 * b) + (5 * nSys);
+                int iBodCen    = 2 + (5 * b) + (5 * nSys);
+                int iBodIntRec = 3 + (5 * b) + (5 * nSys);
+                int iBodIntEmi = 4 + (5 * b) + (5 * nSys);
+                #endregion
+
+                #region SystemBodyEdges
+                edgeCost[iSysIntEmi, iBodExtRec] = 1f; // TEMPORARY CONSTANT
+                edgeCost[iBodExtEmi, iSysIntRec] = 1f; // TEMPORARY CONSTANT
+                #endregion
+
+                #region IntrabodyEdges
+                edgeCost[iBodExtRec, iBodCen] = body[b].ImportExportTax[0];
+                edgeCost[iBodCen, iBodExtEmi] = body[b].ImportExportTax[1];
+                edgeCost[iBodIntRec, iBodCen] = body[b].InternalTax[0];
+                edgeCost[iBodCen, iBodIntEmi] = body[b].InternalTax[1];
+                #endregion
+
+                foreach (FacilityObject fo in bo.Facility)
+                {
+                    int f = FindFacilityIndex(fo, facility);
+
+                    #region IdentifyFacilityNodes
+                    int iFacRec = 0 + (3 * f) + (5 * nBod) + (5 * nSys);
+                    int iFacEmi = 1 + (3 * f) + (5 * nBod) + (5 * nSys);
+                    int iFacPro = 2 + (3 * f) + (5 * nBod) + (5 * nSys);
+                    #endregion
+
+                    #region BodyFacilityEdges
+                    edgeCost[iBodIntEmi, iFacRec] = 0.5f; // TEMPORARY CONSTANT
+                    edgeCost[iFacEmi, iBodIntRec] = 0.5f; // TEMPORARY CONSTANT
+                    #endregion
+
+                    #region IntrafacilityEdges
+                    edgeCost[iFacRec, iFacPro] = facility[f].ImportExportTax[0];
+                    edgeCost[iFacPro, iFacEmi] = facility[f].ImportExportTax[1];
+                    #endregion
+                }
+            }
+        }
+
+        for (int a = 0; a < edgeCost.GetLength(0); a++)
+            for (int b = 0; b < edgeCost.GetLength(1); b++)
+                if (edgeCost[a, b] == 0)
+                    edgeCost[a, b] = Mathf.Infinity;
+    }
+
+    private int FindBodyIndex(BodyObject b, List<BodyObject> l)
+    {
+        int i = -1;
+        foreach (BodyObject c in l)
+        {
+            i++;
+            if (c == b) return i;
+        }
+        Debug.LogError("BodyObject not found in list.");
+        return -1;
+    }
+
+    private int FindFacilityIndex(FacilityObject f, List<FacilityObject> l)
+    {
+        int i = -1;
+        foreach (FacilityObject c in l)
+        {
+            i++;
+            if (c == f) return i;
+        }
+        Debug.LogError("FacilityObject not found in list.");
+        return -1;
     }
 
     private void BuildAugmentedMatrix()
