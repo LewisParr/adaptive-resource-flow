@@ -246,7 +246,7 @@ public class Problem07FlowSolver
                 if (edgeCost[a, b] != Mathf.Infinity) nNonInf++;
     }
 
-    private void BuildAugmentedMatrix()
+    private void BuildAugmentedMatrix(List<FacilityObject> facility)
     {
         augMat = new float[nRow, nCol];
 
@@ -258,10 +258,53 @@ public class Problem07FlowSolver
                 for (int _n = 0; _n < nNode; _n++)
                 {
                     if (edgeCost[n, _n] != Mathf.Infinity)
-                        augMat[(r * nNode) + n, (r * nNonInf)]
+                        augMat[(r * nNode) + n, (r * nNonInf) + edgeIndex[n, _n]] = +1;
+                    if (edgeCost[_n, n] != Mathf.Infinity)
+                        augMat[(r * nNode) + n, (r * nNonInf) + edgeIndex[_n, n]] = -1;
                 }
+
+                if ((n >= (5 * nSys) + (5 * nBod)) && (((n - (5 * nSys) - (5 * nBod) + 1) / 3f) % 1 == 0)) // If this is a facility production node
+                {
+                    augMat[(r * nNode) + n, nCol - 1] = facility[((n - (5 * nSys) - (5 * nBod) + 1) / 3) - 1].Production[r];
+                }
+                else augMat[(r * nNode) + n, nCol - 1] = 0;
             }
         }
         #endregion
+
+        #region EdgeCapacity
+        int iCapCon = -1;
+        for (int e = 0; e < nEdge; e++)
+        {
+            int[] nodes = EdgeNodesFromIndex(e);
+
+            if (edgeCapacity[nodes[0], nodes[1]] != Mathf.Infinity)
+            {
+                iCapCon++;
+                augMat[iCapCon + (nNode * nRes), e] = +1;
+                augMat[iCapCon + (nNode * nRes), nCol - 1] = edgeCapacity[nodes[0], nodes[1]];
+            }
+
+            augMat[nRow - 1, e] = edgeCost[nodes[0], nodes[1]];
+        }
+        #endregion
+
+        // PROCESS THE MINIMISATION PROBLEM
+
+        // ...
+    }
+
+    private int[] EdgeNodesFromIndex(int e)
+    {
+        for (int a = 0; a < edgeIndex.GetLength(0); a++)
+            for (int b = 0; b < edgeIndex.GetLength(1); b++)
+                if (edgeIndex[a, b] == e)
+                {
+                    int[] nodes = new int[2];
+                    nodes[0] = a; nodes[1] = b;
+                    return nodes;
+                }
+        Debug.LogError("Edge index not found.");
+        return null;
     }
 }
