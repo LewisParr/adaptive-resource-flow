@@ -74,7 +74,7 @@ public static class Problem07LinearProgramming
 
             if (enteringColumn >= 0)
             {
-                int departingRow = SelectDeparting(tableau);
+                int departingRow = SelectDeparting(tableau, enteringColumn);
             }
         }
     }
@@ -85,7 +85,7 @@ public static class Problem07LinearProgramming
         int nCol = tableau.GetLength(1);
 
         float minVal = float.MaxValue;
-        int enteringColumn;
+        int enteringColumn = -3;
 
         for (int c = 0; c < nCol; c++)
             if (tableau[nRow - 1, c] < minVal)
@@ -113,8 +113,42 @@ public static class Problem07LinearProgramming
         }
     }
 
-    private static int SelectDeparting(float[,] tableau)
+    private static int SelectDeparting(float[,] tableau, int enteringColumn)
     {
+        int nRow = tableau.GetLength(0);
+        int nCol = tableau.GetLength(1);
 
+        float minRatio = float.MaxValue;
+        int departingRow = -3;
+
+        for (int r = 0; r < nRow - 1; r++)
+        {
+            float ratio = tableau[r, nCol - 1] / tableau[r, enteringColumn];
+
+            if (ratio > 0)
+                if (ratio < minRatio)
+                {
+                    minRatio = ratio;
+                    departingRow = r;
+                }
+        }
+
+        if (minRatio <= 0)
+        {
+            Debug.Log("No positive ratios for departing row.");
+            return -1;
+        }
+        else
+        {
+            if (minRatio == float.MaxValue)
+            {
+                Debug.Log("No minimum ratio found for departing row.");
+                return -2;
+            }
+            else
+            {
+                return departingRow;
+            }
+        }
     }
 }
