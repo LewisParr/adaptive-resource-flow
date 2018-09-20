@@ -289,7 +289,7 @@ public class Problem07FlowSolver
         }
         #endregion
 
-        // PROCESS THE MINIMISATION PROBLEM
+        float[,] finalTableau = Problem07LinearProgramming.Minimise(augMat);
 
         // ...
     }

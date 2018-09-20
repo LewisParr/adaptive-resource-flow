@@ -4,24 +4,27 @@ using UnityEngine;
 
 public static class Problem07LinearProgramming
 {
-    private static void Maximise(float[,] augMat, bool dual = false)
+    public static float[,] Maximise(float[,] augMat, bool dual = false)
     {
         if (dual)
         {
             float[,] tableau = augMat;
-            SimplexMethod(tableau);
+            float[,] finalTableau = SimplexMethod(tableau);
+            return finalTableau;
         }
         else
         {
             Debug.LogError("None-dual problem maximisation not implemented.");
+            return null;
         }
     }
 
-    private static void Minimise(float[,] augMat)
+    public static float[,] Minimise(float[,] augMat)
     {
         float[,] _augMat = Transpose(augMat);
         float[,] tableau = ArtificialVariables(_augMat);
-        Maximise(tableau, true);
+        float[,] finalTableau = Maximise(tableau, true);
+        return finalTableau;
     }
 
     private static float[,] Transpose(float[,] matrix)
@@ -64,7 +67,7 @@ public static class Problem07LinearProgramming
         return tableau;
     }
 
-    private static void SimplexMethod(float[,] tableau)
+    private static float[,] SimplexMethod(float[,] tableau)
     {
         bool terminate = false;
 
@@ -75,8 +78,17 @@ public static class Problem07LinearProgramming
             if (enteringColumn >= 0)
             {
                 int departingRow = SelectDeparting(tableau, enteringColumn);
+
+                if (departingRow >= 0)
+                {
+                    tableau = Pivot(tableau, enteringColumn, departingRow);
+                }
+                else terminate = true;
             }
+            else terminate = true;
         }
+
+        return tableau;
     }
 
     private static int SelectEntering(float[,] tableau)
@@ -150,5 +162,29 @@ public static class Problem07LinearProgramming
                 return departingRow;
             }
         }
+    }
+
+    private static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
+    {
+        int nRow = tableau.GetLength(0);
+        int nCol = tableau.GetLength(1);
+
+        #region ScaleRowToPivotValue1
+        float scaleValue = tableau[departingRow, enteringColumn];
+        for (int c = 0; c < nCol; c++)
+            tableau[departingRow, c] = tableau[departingRow, c] / scaleValue;
+        #endregion
+
+        #region SetColsToValue0
+        for (int r = 0; r < nRow; r++)
+            if (r != departingRow)
+            {
+                float coefficient = -tableau[r, enteringColumn];
+                for (int c = 0; c < nCol; c++)
+                    tableau[r, c] = (coefficient * tableau[departingRow, c]) + tableau[r, c];
+            }
+        #endregion
+
+        return tableau;
     }
 }

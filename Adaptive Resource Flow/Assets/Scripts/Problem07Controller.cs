@@ -407,144 +407,26 @@ public class Problem07Controller : MonoBehaviour
         }
     }
 
-    private void BuildAugmentedMatrix()
-    {
-        // Process the minimisation problem
-        float[] output = Minimise(augmat);
-    }
-
-    private static float[] Minimise(float[,] augmat)
-    {
-        // Form the transpose of the augmented matrix
-        float[,] _augmat = Transpose(augmat);
-
-        // Form the dual maximisation problem
-        float[,] tableau = InsertSlackVariables(_augmat);
-
-        //Debug.Log("Number of tableau rows: " + tableau.GetLength(0));
-        //Debug.Log("Number of tableau columns: " + tableau.GetLength(1));
-
-        // Process the maximisation problem
-        float[] output = Maximise(tableau, true);
-
-        // Return the result
-        return output;
-    }
-
-    private static float[] Maximise(float[,] tableau, bool dual = false)
-    {
-        // Run the simplex method
-        tableau = SimplexMethod(tableau);
-
-        //Debug.Log("----- FINAL TABLEAU -----");
-        //for (int r = 0; r < tableau.GetLength(0); r++)
-        //{
-        //    string row = "";
-        //    for (int c = 0; c < tableau.GetLength(1); c++)
-        //    {
-        //        row += tableau[r, c];
-        //        row += ";";
-        //    }
-        //    Debug.Log(row);
-        //}
-
-        // Read the solution
-        ReadTableau(tableau);
-
-        if (!dual)
-        {
-            // Read results normally
-            Debug.LogError("NOT IMPLEMENTED");
-            return null;
-        }
-        else
-        {
-            // Return the bottom row
-            float[] output = new float[tableau.GetLength(1)];
-            for (int c = 0; c < tableau.GetLength(1); c++)
-                output[c] = tableau[tableau.GetLength(0) - 1, c];
-            return output;
-        }
-    }
-
-    private static float[,] SimplexMethod(float[,] tableau)
-    {
-        int iterCount = 0;
-        bool terminate = false;
-        while (!terminate)
-        {
-            iterCount++;
-
-            // Locate the most negative entry in the bottom row
-            int enteringColumn = SelectEntering(tableau);
-
-            if (enteringColumn != -1)
-            {
-                // Locate the smallest nonnegative ratio
-                int departingRow = SelectDeparting(tableau, enteringColumn);
-
-                if (departingRow != -1)
-                {
-                    //Debug.Log("Entering column: " + enteringColumn + "; Departing row: " + departingRow);
-                    
-                    // Set pivot to 1 all others to zero
-                    tableau = Pivot(tableau, enteringColumn, departingRow);
-                }
-                else terminate = true;
-            }
-            else terminate = true;
-
-            // !!!
-            if (iterCount == 1000) terminate = true;
-
-            //Debug.Log("Simplex Method pass " + iterCount + " completed at: " + Time.realtimeSinceStartup);
-        }
-        return tableau;
-    }
-
-    private static float[,] Pivot(float[,] tableau, int enteringColumn, int departingRow)
-    {
-        int numRow = tableau.GetLength(0);
-        int numCol = tableau.GetLength(1);
-
-        // Scale departing row so that pivot value is 1
-        float scaleValue = tableau[departingRow, enteringColumn];
-        for (int c = 0; c < numCol; c++)
-            tableau[departingRow, c] = tableau[departingRow, c] / scaleValue;
-
-        // Set other values in entering column to 0
-        for (int r = 0; r < numRow; r++)
-            if (r != departingRow)
-            {
-                float coefficient = -tableau[r, enteringColumn];
-                for (int c = 0; c < numCol; c++)
-                    tableau[r, c] = (coefficient * tableau[departingRow, c]) + tableau[r, c];
-            }
-
-        // Return the new tableau
-        return tableau;
-    }
-
-    private static void ReadTableau(float[,] tableau)
-    {
-        for (int c = 0; c < tableau.GetLength(1); c++) // For each column, ...
-        {
-            float nZero = 0;
-            float nOne = 0;
-            float nOther = 0;
-
-            for (int r = 0; r < tableau.GetLength(0); r++) // iterate through its rows ...
-            {
-                float thisVal = tableau[r, c];
-                if (thisVal == 0) nZero++;
-                else if (thisVal == 1) nOne++;
-                else nOther++;
-            }
-
-            if (nOne == 1 && nOther == 0)
-            {
-                Debug.Log("Column " + c + " is part of the solution.");
-            }
-        }
-    }
+    //private static void ReadTableau(float[,] tableau)
+    //{
+    //    for (int c = 0; c < tableau.GetLength(1); c++) // For each column, ...
+    //    {
+    //        float nZero = 0;
+    //        float nOne = 0;
+    //        float nOther = 0;
+    //
+    //        for (int r = 0; r < tableau.GetLength(0); r++) // iterate through its rows ...
+    //        {
+    //            float thisVal = tableau[r, c];
+    //            if (thisVal == 0) nZero++;
+    //            else if (thisVal == 1) nOne++;
+    //            else nOther++;
+    //        }
+    //
+    //        if (nOne == 1 && nOther == 0)
+    //        {
+    //            Debug.Log("Column " + c + " is part of the solution.");
+    //        }
+    //    }
+    //}
 }
