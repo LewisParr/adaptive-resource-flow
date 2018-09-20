@@ -61,8 +61,18 @@ public class Problem07FlowSolver
         CollectEdgeData(system, body, facility);
         IndexEdges();
         BuildAugmentedMatrix(facility);
-        tableau = Problem07LinearProgramming.Minimise(augMat);
-        ReadTableau();
+
+        //Debug.Log("Aug Mat size: " + augMat.GetLength(0) + " by " + augMat.GetLength(1));
+
+        float[] result = Problem07LinearProgramming.Minimise(augMat);
+
+        string resultString = "";
+        for (int i = 0; i < result.Length; i++)
+        {
+            resultString += result[i];
+            resultString += "; ";
+        }
+        Debug.Log(resultString);
     }
 
     private void CountElements(List<SystemObject> system, List<BodyObject> body, List<FacilityObject> facility)
@@ -254,7 +264,7 @@ public class Problem07FlowSolver
         augMat = new float[nRow, nCol];
 
         #region FlowConservation
-        for (int r = 0; r < 3; r++) // TEMPORARY CONSTANT
+        for (int r = 0; r < nRes; r++)
         {
             for (int n = 0; n < nNode; n++)
             {
@@ -279,7 +289,8 @@ public class Problem07FlowSolver
         int iCapCon = -1;
         for (int e = 0; e < nEdge; e++)
         {
-            int[] nodes = EdgeNodesFromIndex(e - (Mathf.FloorToInt(e / nRes) * nRes));
+            //int[] nodes = EdgeNodesFromIndex(e - (Mathf.FloorToInt(e / nRes) * nRes));
+            int[] nodes = EdgeNodesFromIndex(Mathf.FloorToInt(e / nRes));
 
             if (edgeCapacity[nodes[0], nodes[1]] != Mathf.Infinity)
             {
@@ -307,27 +318,43 @@ public class Problem07FlowSolver
         return null;
     }
 
-    private void ReadTableau()
+    private void ReadTableau() // DESTROY ME
     {
-        for (int c = 0; c < tableau.GetLength(1); c++)
+        for (int r = 0; r < tableau.GetLength(0); r++)
         {
-            float nZero = 0;
-            float nOne = 0;
-            float nOther = 0;
-
-            for (int r = 0; r < tableau.GetLength(0); r++)
+            string row = "";
+            for (int c = 0; c < tableau.GetLength(1); c++)
             {
-                float thisVal = tableau[r, c];
-
-                if (thisVal == 0) nZero++;
-                else if (thisVal == 1) nOne++;
-                else nOther++;
+                row += tableau[r, c];
+                row += ";";
             }
-
-            if (nOne == 1 && nOther == 0)
-            {
-                Debug.Log("Col " + c + " is part of the solution.");
-            }
+            Debug.Log(row);
         }
+
+        //for (int c = 0; c < tableau.GetLength(1); c++)
+        //{
+        //    float nZero = 0;
+        //    float nOne = 0;
+        //    float nOther = 0;
+        //    int iOne = -1;
+        //
+        //    for (int r = 0; r < tableau.GetLength(0); r++)
+        //    {
+        //        float thisVal = tableau[r, c];
+        //
+        //        if (thisVal == 0) nZero++;
+        //        else if (thisVal == 1) { nOne++; iOne = r; }
+        //        else nOther++;
+        //    }
+        //
+        //    if (nOne == 1 && nOther == 0)
+        //    {
+        //        //Debug.Log("Col " + c + " is part of the solution.");
+        //
+        //        //Debug.Log("Value of col " + c + " is in row " + iOne);
+        //
+        //        Debug.Log("Value of col " + c + " is " + tableau[iOne, nCol - 1]);
+        //    }
+        //}
     }
 }

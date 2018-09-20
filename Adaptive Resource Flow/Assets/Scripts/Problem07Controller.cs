@@ -44,16 +44,22 @@ public class Problem07Controller : MonoBehaviour
         flowSolver = new Problem07FlowSolver();
 
         if (preset) CreatePreset();
+
+
+
+
+
+        LPTest();
     }
 
     private void Update()
     {
         frame++;
-
+        
         if (frame % delay == 0)
         {
             element++;
-
+        
             AddElement(element);
             if (element == presetPos.Count) UpdateResourceFlows();
         }
@@ -407,26 +413,83 @@ public class Problem07Controller : MonoBehaviour
         }
     }
 
-    //private static void ReadTableau(float[,] tableau)
-    //{
-    //    for (int c = 0; c < tableau.GetLength(1); c++) // For each column, ...
-    //    {
-    //        float nZero = 0;
-    //        float nOne = 0;
-    //        float nOther = 0;
-    //
-    //        for (int r = 0; r < tableau.GetLength(0); r++) // iterate through its rows ...
-    //        {
-    //            float thisVal = tableau[r, c];
-    //            if (thisVal == 0) nZero++;
-    //            else if (thisVal == 1) nOne++;
-    //            else nOther++;
-    //        }
-    //
-    //        if (nOne == 1 && nOther == 0)
-    //        {
-    //            Debug.Log("Column " + c + " is part of the solution.");
-    //        }
-    //    }
-    //}
+
+
+
+
+
+    private void LPTest()
+    {
+        //Debug.Log("MAXIMISATION TEST");
+        //
+        //float[,] t = new float[3, 7];
+        //t[0, 0] = 2; t[0, 1] = 3; t[0, 2] = 2; t[0, 3] = 1; t[0, 4] = 0; t[0, 5] = 0; t[0, 6] = 1000;
+        //t[1, 0] = 1; t[1, 1] = 1; t[1, 2] = 2; t[1, 3] = 0; t[1, 4] = 1; t[1, 5] = 0; t[1, 6] = 800;
+        //t[2, 0] = -7; t[2, 1] = -8; t[2, 2] = -10; t[2, 3] = 0; t[2, 4] = 0; t[2, 5] = 1; t[2, 6] = 0;
+        //
+        //Debug.Log("----- INITIAL -----");
+        //for (int row = 0; row < t.GetLength(0); row++)
+        //{
+        //    string s = "";
+        //    for (int col = 0; col < t.GetLength(1); col++)
+        //    {
+        //        s += t[row, col];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
+        //Debug.Log("----------");
+        //
+        //float[,] result = Problem07LinearProgramming.Maximise(t);
+        //
+        //Debug.Log("----- RESULT -----");
+        //for (int row = 0; row < result.GetLength(0); row++)
+        //{
+        //    string s = "";
+        //    for (int col = 0; col < result.GetLength(1); col++)
+        //    {
+        //        s += result[row, col];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
+        //Debug.Log("----------");
+        //
+        //Debug.Log("--------------------");
+
+        Debug.Log("MINIMISATION TEST");
+
+        float[,] a = new float[4, 3];
+        a[0, 0] = 60; a[0, 1] = 60; a[0, 2] = 300;
+        a[1, 0] = 12; a[1, 1] = 6; a[1, 2] = 36;
+        a[2, 0] = 10; a[2, 1] = 30; a[2, 2] = 90;
+        a[3, 0] = 0.12f; a[3, 1] = 0.15f; a[3, 2] = 0;
+
+        Debug.Log("----- INITIAL -----");
+        for (int row = 0; row < a.GetLength(0); row++)
+        {
+            string s = "";
+            for (int col = 0; col < a.GetLength(1); col++)
+            {
+                s += a[row, col];
+                s += "; ";
+            }
+            Debug.Log(s);
+        }
+        Debug.Log("----------");
+
+        float[] _result = Problem07LinearProgramming.Minimise(a);
+
+        Debug.Log("----- RESULT -----");
+        string resultString = "";
+        for (int i = 0; i < _result.Length; i++)
+        {
+            resultString += _result[i];
+            resultString += "; ";
+        }
+        Debug.Log(resultString);
+        Debug.Log("----------");
+
+        Debug.Log("--------------------");
+    }
 }
