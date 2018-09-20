@@ -35,10 +35,14 @@ public class Problem07FlowSolver
     int nCapConstr;
     int nRow;
     int nCol;
+    float[,] augMat;
     #endregion
 
     #region EdgeData
     float[,] edgeCost;
+    float[,] edgeCapacity;
+    int[,] edgeIndex;
+    int nNonInf;
     #endregion
 
     public Problem07FlowSolver()
@@ -54,6 +58,7 @@ public class Problem07FlowSolver
 
         CountElements(system, body, facility);
         CollectEdgeData(system, body, facility);
+        IndexEdges();
         BuildAugmentedMatrix();
     }
 
@@ -91,6 +96,7 @@ public class Problem07FlowSolver
     private void CollectEdgeData(List<SystemObject> system, List<BodyObject> body, List<FacilityObject> facility)
     {
         edgeCost = new float[nNode, nNode];
+        edgeCapacity = new float[nNode, nNode];
 
         for (int s = 0; s < nSys; s++)
         {
@@ -109,6 +115,7 @@ public class Problem07FlowSolver
                 if (s != _s)
                 {
                     edgeCost[iSysExtEmi, _iSysExtRec] = Mathf.Pow((system[s].Position - system[_s].Position).magnitude, 1.1f);
+                    edgeCapacity[iSysExtEmi, _iSysExtRec] = Mathf.Infinity;
                 }
                 else
                 {
@@ -119,9 +126,13 @@ public class Problem07FlowSolver
 
             #region IntrasystemEdges
             edgeCost[iSysExtRec, iSysCen] = system[s].ImportExportTax[0];
+            edgeCapacity[iSysExtRec, iSysCen] = system[s].ImportExportCapacity[0];
             edgeCost[iSysCen, iSysExtEmi] = system[s].ImportExportTax[1];
+            edgeCapacity[iSysCen, iSysExtEmi] = system[s].ImportExportCapacity[1];
             edgeCost[iSysIntRec, iSysCen] = system[s].InternalTax[0];
+            edgeCapacity[iSysIntRec, iSysCen] = system[s].InternalCapacity[0];
             edgeCost[iSysCen, iSysIntEmi] = system[s].InternalTax[1];
+            edgeCapacity[iSysCen, iSysIntEmi] = system[s].InternalTax[1];
             #endregion
 
             foreach (BodyObject bo in system[s].Body)
@@ -138,14 +149,20 @@ public class Problem07FlowSolver
 
                 #region SystemBodyEdges
                 edgeCost[iSysIntEmi, iBodExtRec] = 1f; // TEMPORARY CONSTANT
+                edgeCapacity[iSysIntEmi, iBodExtRec] = Mathf.Infinity;
                 edgeCost[iBodExtEmi, iSysIntRec] = 1f; // TEMPORARY CONSTANT
+                edgeCapacity[iBodExtEmi, iSysIntRec] = Mathf.Infinity;
                 #endregion
 
                 #region IntrabodyEdges
                 edgeCost[iBodExtRec, iBodCen] = body[b].ImportExportTax[0];
+                edgeCapacity[iBodExtRec, iBodCen] = body[b].ImportExportCapacity[0];
                 edgeCost[iBodCen, iBodExtEmi] = body[b].ImportExportTax[1];
+                edgeCapacity[iBodCen, iBodExtEmi] = body[b].ImportExportCapacity[1];
                 edgeCost[iBodIntRec, iBodCen] = body[b].InternalTax[0];
+                edgeCapacity[iBodIntRec, iBodCen] = body[b].InternalCapacity[0];
                 edgeCost[iBodCen, iBodIntEmi] = body[b].InternalTax[1];
+                edgeCapacity[iBodCen, iBodIntEmi] = body[b].InternalCapacity[1];
                 #endregion
 
                 foreach (FacilityObject fo in bo.Facility)
@@ -160,12 +177,16 @@ public class Problem07FlowSolver
 
                     #region BodyFacilityEdges
                     edgeCost[iBodIntEmi, iFacRec] = 0.5f; // TEMPORARY CONSTANT
+                    edgeCapacity[iBodIntEmi, iFacRec] = Mathf.Infinity;
                     edgeCost[iFacEmi, iBodIntRec] = 0.5f; // TEMPORARY CONSTANT
+                    edgeCapacity[iFacEmi, iBodIntRec] = Mathf.Infinity;
                     #endregion
 
                     #region IntrafacilityEdges
                     edgeCost[iFacRec, iFacPro] = facility[f].ImportExportTax[0];
+                    edgeCapacity[iFacRec, iFacPro] = facility[f].ImportExportCapacity[0];
                     edgeCost[iFacPro, iFacEmi] = facility[f].ImportExportTax[1];
+                    edgeCapacity[iFacPro, iFacEmi] = facility[f].ImportExportCapacity[1];
                     #endregion
                 }
             }
@@ -201,8 +222,46 @@ public class Problem07FlowSolver
         return -1;
     }
 
+    private void IndexEdges()
+    {
+        int[,] edgeIndex = new int[nNode, nNode];
+
+        int i = -1;
+        for (int n = 0; n < edgeCost.GetLength(0); n++)
+        {
+            for (int _n = 0; _n < edgeCost.GetLength(1); _n++)
+            {
+                if (edgeCost[n, _n] != Mathf.Infinity)
+                {
+                    i++;
+                    edgeIndex[n, _n] = i;
+                }
+                else edgeIndex[n, _n] = -1;
+            }
+        }
+
+        nNonInf = 0;
+        for (int a = 0; a < edgeCost.GetLength(0); a++)
+            for (int b = 0; b < edgeCost.GetLength(1); b++)
+                if (edgeCost[a, b] != Mathf.Infinity) nNonInf++;
+    }
+
     private void BuildAugmentedMatrix()
     {
+        augMat = new float[nRow, nCol];
 
+        #region FlowConservation
+        for (int r = 0; r < 3; r++) // TEMPORARY CONSTANT
+        {
+            for (int n = 0; n < nNode; n++)
+            {
+                for (int _n = 0; _n < nNode; _n++)
+                {
+                    if (edgeCost[n, _n] != Mathf.Infinity)
+                        augMat[(r * nNode) + n, (r * nNonInf)]
+                }
+            }
+        }
+        #endregion
     }
 }
