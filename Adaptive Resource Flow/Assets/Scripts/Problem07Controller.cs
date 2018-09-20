@@ -13,6 +13,8 @@ public class Problem07Controller : MonoBehaviour
     private List<BodyObject> body;
     private List<FacilityObject> facility;
 
+    private Problem07FlowSolver flowSolver;
+
     enum ElementType { None, System, Body, Facility };
 
     private int frame = 0;
@@ -39,6 +41,75 @@ public class Problem07Controller : MonoBehaviour
         body = new List<BodyObject>();
         facility = new List<FacilityObject>();
 
+        flowSolver = new Problem07FlowSolver();
+
+        if (preset) CreatePreset();
+    }
+
+    private void Update()
+    {
+        frame++;
+
+        if (frame % delay == 0)
+        {
+            element++;
+
+            AddElement(element);
+            if (element == presetPos.Count) UpdateResourceFlows();
+        }
+    }
+
+    public void OnDrawGizmos()
+    {
+        if (system != null)
+        {
+            foreach (SystemObject s in system)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(s.Position, 0.30f);
+
+                if (s.Body != null)
+                {
+                    for (int b = 0; b < s.Body.Count; b++)
+                    {
+                        float angle = b * ((2 * Mathf.PI) / s.Body.Count);
+                        float radius = 1.20f;
+                        Vector3 _pos = new Vector3(radius * Mathf.Sin(angle), 0, radius * Mathf.Cos(angle));
+                        Gizmos.color = Color.white;
+                        Gizmos.DrawWireSphere(s.Position + _pos, 0.25f);
+
+                        if (s.Body[b].Facility != null)
+                        {
+                            for (int f = 0; f < s.Body[b].Facility.Count; f++)
+                            {
+                                float _angle = f * ((2 * Mathf.PI) / s.Body[b].Facility.Count);
+                                float _radius = 0.60f;
+                                Vector3 __pos = new Vector3(_radius * Mathf.Sin(_angle), 0, _radius * Mathf.Cos(_angle));
+                                Gizmos.color = Color.green;
+                                Gizmos.DrawWireSphere(s.Position + _pos + __pos, 0.10f);
+
+                                if (s.Body[b].Facility[f].Production != null)
+                                {
+                                    for (int p = 0; p < s.Body[b].Facility[f].Production.Length; p++)
+                                    {
+                                        float __angle = p * ((2 * Mathf.PI) / s.Body[b].Facility[f].Production.Length);
+                                        float __radius = 0.20f;
+                                        Vector3 ___pos = new Vector3(__radius * Mathf.Sin(__angle), 0, __radius * Mathf.Cos(__angle));
+                                        if (s.Body[b].Facility[f].Production[p] != 0) Gizmos.color = Color.Lerp(Color.red, Color.blue, 0.5f + s.Body[b].Facility[f].Production[p]);
+                                        else Gizmos.color = Color.white;
+                                        Gizmos.DrawCube(s.Position + _pos + __pos + ___pos, new Vector3(0.10f, 0.10f, 0.10f));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void CreatePreset()
+    {
         presetType = new List<ElementType>();
         presetPos = new List<Vector3>();
         presetIntCap = new List<float[]>();
@@ -149,68 +220,6 @@ public class Problem07Controller : MonoBehaviour
         presetParent.Add(1);
         prod = new float[3]; prod[0] = +0.25f; prod[1] = +0.50f; prod[2] = +0.75f;
         presetProd.Add(prod);
-    }
-
-    private void Update()
-    {
-        frame++;
-
-        if (frame % delay == 0)
-        {
-            element++;
-
-            AddElement(element);
-            if (element == presetPos.Count) UpdateResourceFlows();
-        }
-    }
-
-    public void OnDrawGizmos()
-    {
-        if (system != null)
-        {
-            foreach (SystemObject s in system)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(s.Position, 0.30f);
-
-                if (s.Body != null)
-                {
-                    for (int b = 0; b < s.Body.Count; b++)
-                    {
-                        float angle = b * ((2 * Mathf.PI) / s.Body.Count);
-                        float radius = 1.20f;
-                        Vector3 _pos = new Vector3(radius * Mathf.Sin(angle), 0, radius * Mathf.Cos(angle));
-                        Gizmos.color = Color.white;
-                        Gizmos.DrawWireSphere(s.Position + _pos, 0.25f);
-
-                        if (s.Body[b].Facility != null)
-                        {
-                            for (int f = 0; f < s.Body[b].Facility.Count; f++)
-                            {
-                                float _angle = f * ((2 * Mathf.PI) / s.Body[b].Facility.Count);
-                                float _radius = 0.60f;
-                                Vector3 __pos = new Vector3(_radius * Mathf.Sin(_angle), 0, _radius * Mathf.Cos(_angle));
-                                Gizmos.color = Color.green;
-                                Gizmos.DrawWireSphere(s.Position + _pos + __pos, 0.10f);
-
-                                if (s.Body[b].Facility[f].Production != null)
-                                {
-                                    for (int p = 0; p < s.Body[b].Facility[f].Production.Length; p++)
-                                    {
-                                        float __angle = p * ((2 * Mathf.PI) / s.Body[b].Facility[f].Production.Length);
-                                        float __radius = 0.20f;
-                                        Vector3 ___pos = new Vector3(__radius * Mathf.Sin(__angle), 0, __radius * Mathf.Cos(__angle));
-                                        if (s.Body[b].Facility[f].Production[p] != 0) Gizmos.color = Color.Lerp(Color.red, Color.blue, 0.5f + s.Body[b].Facility[f].Production[p]);
-                                        else Gizmos.color = Color.white;
-                                        Gizmos.DrawCube(s.Position + _pos + __pos + ___pos, new Vector3(0.10f, 0.10f, 0.10f));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private void AddElement(int element = 0)
@@ -392,11 +401,10 @@ public class Problem07Controller : MonoBehaviour
          * Update the flow of resources through the world.
          */
 
-        Debug.Log("Updating resource flows...");
-
         if (system.Count > 0 && body.Count > 0 && facility.Count > 0)
         {
-            BuildAugmentedMatrix();
+            //BuildAugmentedMatrix();
+            flowSolver.Solve();
         }
     }
 
@@ -523,27 +531,27 @@ public class Problem07Controller : MonoBehaviour
             augmat[nRow - 1, e] = cost[nodes[0], nodes[1]];
         }
 
-        Debug.Log("Nodes: " + nNode);
+        //Debug.Log("Nodes: " + nNode);
 
-        Debug.Log("Cost (0, 0): " + cost[0, 0]);
-
-        Debug.Log("----- AUGMENTED MATRIX -----");
-        for (int row = 0; row < augmat.GetLength(0); row++)
-        {
-            string s = "";
-            for (int col = 0; col < augmat.GetLength(1); col++)
-            {
-                s += augmat[row, col];
-                s += "; ";
-            }
-            Debug.Log(s);
-        }
+        //Debug.Log("----- AUGMENTED MATRIX -----");
+        //for (int row = 0; row < augmat.GetLength(0); row++)
+        //{
+        //    string s = "";
+        //    for (int col = 0; col < augmat.GetLength(1); col++)
+        //    {
+        //        s += augmat[row, col];
+        //        s += "; ";
+        //    }
+        //    Debug.Log(s);
+        //}
 
         // Process the minimisation problem
         float[] output = Minimise(augmat);
 
+        //foreach (float o in output) Debug.Log(o);
+
         // Interpret the result
-        // ...
+        
     }
 
     private float[,] BuildEdgeCostMatrix(int nNode, int nSys, int nBod)
@@ -833,8 +841,8 @@ public class Problem07Controller : MonoBehaviour
         // Form the dual maximisation problem
         float[,] tableau = InsertSlackVariables(_augmat);
 
-        Debug.Log("Number of tableau rows: " + tableau.GetLength(0));
-        Debug.Log("Number of tableau columns: " + tableau.GetLength(1));
+        //Debug.Log("Number of tableau rows: " + tableau.GetLength(0));
+        //Debug.Log("Number of tableau columns: " + tableau.GetLength(1));
 
         // Process the maximisation problem
         float[] output = Maximise(tableau, true);
@@ -882,6 +890,21 @@ public class Problem07Controller : MonoBehaviour
         // Run the simplex method
         tableau = SimplexMethod(tableau);
 
+        //Debug.Log("----- FINAL TABLEAU -----");
+        //for (int r = 0; r < tableau.GetLength(0); r++)
+        //{
+        //    string row = "";
+        //    for (int c = 0; c < tableau.GetLength(1); c++)
+        //    {
+        //        row += tableau[r, c];
+        //        row += ";";
+        //    }
+        //    Debug.Log(row);
+        //}
+
+        // Read the solution
+        ReadTableau(tableau);
+
         if (!dual)
         {
             // Read results normally
@@ -916,7 +939,8 @@ public class Problem07Controller : MonoBehaviour
 
                 if (departingRow != -1)
                 {
-                    Debug.Log("Entering column: " + enteringColumn + "; Departing row: " + departingRow);
+                    //Debug.Log("Entering column: " + enteringColumn + "; Departing row: " + departingRow);
+                    
                     // Set pivot to 1 all others to zero
                     tableau = Pivot(tableau, enteringColumn, departingRow);
                 }
@@ -927,7 +951,7 @@ public class Problem07Controller : MonoBehaviour
             // !!!
             if (iterCount == 1000) terminate = true;
 
-            Debug.Log("Simplex Method pass " + iterCount + " completed at: " + Time.realtimeSinceStartup);
+            //Debug.Log("Simplex Method pass " + iterCount + " completed at: " + Time.realtimeSinceStartup);
         }
         return tableau;
     }
@@ -952,14 +976,17 @@ public class Problem07Controller : MonoBehaviour
             }
         }
 
-        string s = " chosen from (col): ";
-        foreach (float value in values) { s += value; s += "; "; }
+        //string s = " chosen from (col): ";
+        //foreach (float value in values) { s += value; s += "; "; }
 
-        if (!(minVal < 0)) { Debug.Log("None" + s); return -1; }
+        //if (!(minVal < 0)) { Debug.Log("None" + s); return -1; }
+        if (!(minVal < 0)) return -1;
         else
         {
-            if (minVal == float.MaxValue) { Debug.Log("None" + s); return -1; }
-            else { Debug.Log(tableau[numRow - 1, enteringColumn] + " (" + enteringColumn + ")" + s); return enteringColumn; }
+            //if (minVal == float.MaxValue) { Debug.Log("None" + s); return -1; }
+            //else { Debug.Log(tableau[numRow - 1, enteringColumn] + " (" + enteringColumn + ")" + s); return enteringColumn; }
+            if (minVal == float.MaxValue) return -1;
+            else return enteringColumn;
         }
     }
 
@@ -986,14 +1013,17 @@ public class Problem07Controller : MonoBehaviour
                 }
         }
 
-        string s = " chosen from (row): ";
-        foreach (float value in values) { s += value; s += "; "; }
+        //string s = " chosen from (row): ";
+        //foreach (float value in values) { s += value; s += "; "; }
 
-        if (!(minRatio > 0)) { Debug.Log("None" + s); return -1; }
+        //if (!(minRatio > 0)) { Debug.Log("None" + s); return -1; }
+        if (!(minRatio > 0)) return -1;
         else
         {
-            if (minRatio == float.MaxValue) { Debug.Log("None" + s); return -1; }
-            else { Debug.Log(values[departingRow] + " (" + departingRow + ")" + s); return departingRow; }
+            //if (minRatio == float.MaxValue) { Debug.Log("None" + s); return -1; }
+            //else { Debug.Log(values[departingRow] + " (" + departingRow + ")" + s); return departingRow; }
+            if (minRatio == float.MaxValue) return -1;
+            else return departingRow;
         }
     }
 
@@ -1018,5 +1048,28 @@ public class Problem07Controller : MonoBehaviour
 
         // Return the new tableau
         return tableau;
+    }
+
+    private static void ReadTableau(float[,] tableau)
+    {
+        for (int c = 0; c < tableau.GetLength(1); c++) // For each column, ...
+        {
+            float nZero = 0;
+            float nOne = 0;
+            float nOther = 0;
+
+            for (int r = 0; r < tableau.GetLength(0); r++) // iterate through its rows ...
+            {
+                float thisVal = tableau[r, c];
+                if (thisVal == 0) nZero++;
+                else if (thisVal == 1) nOne++;
+                else nOther++;
+            }
+
+            if (nOne == 1 && nOther == 0)
+            {
+                Debug.Log("Column " + c + " is part of the solution.");
+            }
+        }
     }
 }
