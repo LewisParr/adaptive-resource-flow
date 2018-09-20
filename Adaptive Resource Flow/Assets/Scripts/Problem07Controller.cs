@@ -431,40 +431,6 @@ public class Problem07Controller : MonoBehaviour
         return output;
     }
 
-    private static float[,] Transpose(float[,] augmat)
-    {
-        int numRow = augmat.GetLength(1);
-        int numCol = augmat.GetLength(0);
-        float[,] transpose = new float[numRow, numCol];
-        for (int r = 0; r < numRow; r++)
-            for (int c = 0; c < numCol; c++)
-                transpose[r, c] = augmat[c, r];
-        return transpose;
-    }
-
-    private static float[,] InsertSlackVariables(float[,] augmat)
-    {
-        int numRow = augmat.GetLength(0);
-        int numCol = augmat.GetLength(1) + (numRow - 1);
-        float[,] tableau = new float[numRow, numCol];
-
-        // Insert matrix values (except b-values)
-        for (int r = 0; r < numRow; r++)
-            for (int c = 0; c < augmat.GetLength(1) - 1; c++)
-                tableau[r, c] = augmat[r, c];
-
-        // Insert b-values
-        for (int r = 0; r < numRow; r++)
-            tableau[r, numCol - 1] = augmat[r, augmat.GetLength(1) - 1];
-
-        // Insert slack values
-        for (int r = 0; r < numRow - 1; r++)
-            tableau[r, r + augmat.GetLength(1) - 1] = 1f;
-
-        // Return the completed tableau
-        return tableau;
-    }
-
     private static float[] Maximise(float[,] tableau, bool dual = false)
     {
         // Run the simplex method
